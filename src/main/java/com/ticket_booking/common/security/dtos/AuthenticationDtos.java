@@ -1,0 +1,37 @@
+package com.ticket_booking.common.security.dtos;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public class AuthenticationDtos {
+	
+	public record RegisterUserRequest(
+		@NotBlank String name,
+		@NotBlank(message = "Email cannot be blank")
+		@Email(message = "Invalid email format")
+		String email,
+
+		@NotBlank(message = "Password cannot be blank")
+		String password
+	) {}
+	
+	public record AuthenticateUserRequest(
+		@NotBlank(message = "Email cannot be blank")
+		@Email(message = "Invalid email format")
+		String email,
+
+		@NotBlank(message = "Password cannot be blank")
+		String password
+	) {}
+				
+
+	public record RefreshTokenRequest(
+		@NotBlank(message = "Refresh token cannot be blannk") String refreshToken
+	) {}
+
+
+	public record AuthResponse(
+		String accessToken,
+		String refreshToken
+	) {}
+}

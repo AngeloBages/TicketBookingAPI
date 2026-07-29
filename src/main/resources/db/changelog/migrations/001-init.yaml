@@ -1,0 +1,532 @@
+databaseChangeLog:
+
+  #################################################################
+  # SEQUENCES
+  #################################################################
+
+  - changeSet:
+      id: 001-create-sequences
+      author: angelo-b
+      changes:
+
+        - createSequence:
+            sequenceName: app_user_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+        - createSequence:
+            sequenceName: role_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+        - createSequence:
+            sequenceName: venue_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+        - createSequence:
+            sequenceName: event_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+        - createSequence:
+            sequenceName: seat_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+        - createSequence:
+            sequenceName: booking_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+        - createSequence:
+            sequenceName: refresh_token_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+  #################################################################
+  # ROLE
+  #################################################################
+
+  - changeSet:
+      id: 002-create-role
+      author: angelo-b
+      changes:
+
+        - createTable:
+            tableName: app_role
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+  #################################################################
+  # USER
+  #################################################################
+
+  - changeSet:
+      id: 003-create-user
+      author: angelo-b
+      changes:
+
+        - createTable:
+            tableName: app_user
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: uuid
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: app_user
+            indexName: idx_user_email
+            unique: true
+            columns:
+              - column:
+                  name: email
+
+  #################################################################
+  # VENUE
+  #################################################################
+
+  - changeSet:
+      id: 004-create-venue
+      author: angelo-b
+      changes:
+
+        - createTable:
+            tableName: venue
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: address
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+  #################################################################
+  # EVENT
+  #################################################################
+
+  - changeSet:
+      id: 005-create-event
+      author: angelo-b
+      changes:
+
+        - createTable:
+            tableName: event
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: description
+                  type: VARCHAR(1000)
+
+              - column:
+                  name: date
+                  type: DATE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: venue_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            constraintName: fk_event_venue
+            baseTableName: event
+            baseColumnNames: venue_id
+            referencedTableName: venue
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        - createIndex:
+            tableName: event
+            indexName: idx_event_venue
+            columns:
+              - column:
+                  name: venue_id
+
+  #################################################################
+  # SEAT
+  #################################################################
+
+  - changeSet:
+      id: 006-create-seat
+      author: angelo-b
+      changes:
+
+        - createTable:
+            tableName: seat
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: seat_number
+                  type: INT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: seat_row
+                  type: INT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: venue_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            constraintName: fk_seat_venue
+            baseTableName: seat
+            baseColumnNames: venue_id
+            referencedTableName: venue
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        - addUniqueConstraint:
+            tableName: seat
+            columnNames: venue_id, seat_row, seat_number
+            constraintName: uk_seat_position
+
+        - createIndex:
+            tableName: seat
+            indexName: idx_seat_venue
+            columns:
+              - column:
+                  name: venue_id
+
+  #################################################################
+  # BOOKING
+  #################################################################
+
+  - changeSet:
+      id: 007-create-booking
+      author: angelo-b
+      changes:
+
+        - createTable:
+            tableName: booking
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: booking_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: total_price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: event_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            constraintName: fk_booking_user
+            baseTableName: booking
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        - addForeignKeyConstraint:
+            constraintName: fk_booking_event
+            baseTableName: booking
+            baseColumnNames: event_id
+            referencedTableName: event
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        - createIndex:
+            tableName: booking
+            indexName: idx_booking_user
+            columns:
+              - column:
+                  name: user_id
+
+        - createIndex:
+            tableName: booking
+            indexName: idx_booking_event
+            columns:
+              - column:
+                  name: event_id
+
+  #################################################################
+  # REFRESH TOKENS
+  #################################################################
+
+  - changeSet:
+      id: 008-create-refresh-tokens
+      author: angelo-b
+      changes:
+
+        - createTable:
+            tableName: refresh_tokens
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: token
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: expiry_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: revoked
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            constraintName: fk_refresh_token_user
+            baseTableName: refresh_tokens
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: RESTRICT
+
+        - createIndex:
+            tableName: refresh_tokens
+            indexName: idx_refresh_token_user
+            columns:
+              - column:
+                  name: user_id
+
+  #################################################################
+  # USER ROLES
+  #################################################################
+
+  - changeSet:
+      id: 009-create-user-roles
+      author: angelo-b
+      changes:
+
+        - createTable:
+            tableName: user_roles
+            columns:
+
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: role_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addPrimaryKey:
+            tableName: user_roles
+            columnNames: user_id, role_id
+            constraintName: pk_user_roles
+
+        - addForeignKeyConstraint:
+            constraintName: fk_user_roles_user
+            baseTableName: user_roles
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            constraintName: fk_user_roles_role
+            baseTableName: user_roles
+            baseColumnNames: role_id
+            referencedTableName: app_role
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        - createIndex:
+            tableName: user_roles
+            indexName: idx_user_roles_role
+            columns:
+              - column:
+                  name: role_id
+
+  #################################################################
+  # BOOKING SEATS
+  #################################################################
+
+  - changeSet:
+      id: 010-create-booking-seats
+      author: angelo-b
+      changes:
+
+        - createTable:
+            tableName: booking_seats
+            columns:
+
+              - column:
+                  name: booking_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: seat_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addPrimaryKey:
+            tableName: booking_seats
+            columnNames: booking_id, seat_id
+            constraintName: pk_booking_seats
+
+        - addForeignKeyConstraint:
+            constraintName: fk_booking_seats_booking
+            baseTableName: booking_seats
+            baseColumnNames: booking_id
+            referencedTableName: booking
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            constraintName: fk_booking_seats_seat
+            baseTableName: booking_seats
+            baseColumnNames: seat_id
+            referencedTableName: seat
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        - createIndex:
+            tableName: booking_seats
+            indexName: idx_booking_seats_seat
+            columns:
+              - column:
+                  name: seat_id
