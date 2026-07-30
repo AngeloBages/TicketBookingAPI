@@ -1,0 +1,17 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-add-version-column-refresh-tokens
+      author: angelo-b
+
+      changes:
+
+        - addColumn:
+            tableName: refresh_tokens
+            columns:
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

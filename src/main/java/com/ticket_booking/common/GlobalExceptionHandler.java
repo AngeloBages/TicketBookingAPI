@@ -19,15 +19,24 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCredentials(BadCredentialsException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Invalid email or password.");
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+        		HttpStatus.UNAUTHORIZED, 
+        		"Invalid email or password."
+        );
+        
         problem.setTitle("Authentication Failed");
         problem.setType(URI.create("https://api.example.com/errors/unauthorized"));
+        
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
     }
 
     @ExceptionHandler(JwtException.class)
     public ResponseEntity<ProblemDetail> handleJwtException(JwtException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Token is invalid or expired: " + ex.getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+        		HttpStatus.UNAUTHORIZED, 
+        		"Token is invalid or expired: " + ex.getMessage()
+        );
+        
         problem.setTitle("Invalid Token");
         problem.setType(URI.create("https://api.example.com/errors/invalid-token"));
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
@@ -35,7 +44,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed for one or more fields.");
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+        		HttpStatus.BAD_REQUEST, 
+        		"Validation failed for one or more fields."
+        );
+        
         problem.setTitle("Bad Request");
         
         Map<String, String> fieldErrors = new HashMap<>();
@@ -49,7 +62,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleGlobalException(Exception ex) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.");
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+        		HttpStatus.INTERNAL_SERVER_ERROR, 
+        		"An unexpected error occurred."
+        );
+        
         problem.setTitle("Internal Server Error");
         problem.setProperty("debug_message", ex.getMessage());
         

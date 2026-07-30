@@ -1,3 +1,6 @@
 databaseChangeLog:
   - include:
       file: classpath:db/changelog/migrations/001-init.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/002-refresh-token-add-version.yaml

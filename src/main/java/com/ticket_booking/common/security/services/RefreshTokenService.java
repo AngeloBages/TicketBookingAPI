@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +40,14 @@ public class RefreshTokenService {
         verifyExpiration(refreshToken);
         refreshToken.setRevoked(true);
         
-        return createRefreshToken(refreshToken.getUser());
+        try {
+            return createRefreshToken(refreshToken.getUser());
+        }
+        catch (ObjectOptimisticLockingFailureException ex) {
+            throw new RefreshTokenReplayException(
+                    "Refresh token was already used."
+            );
+        }
     }
 
     @Transactional

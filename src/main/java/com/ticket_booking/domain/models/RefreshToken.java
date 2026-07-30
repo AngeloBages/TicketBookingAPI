@@ -2,6 +2,8 @@ package com.ticket_booking.domain.models;
 
 import java.time.Instant;
 
+import jakarta.persistence.Version;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -34,6 +36,10 @@ public class RefreshToken {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+    
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
     
     protected RefreshToken() {}
@@ -55,4 +61,5 @@ public class RefreshToken {
     public void setExpiryDate(Instant expiryDate) { this.expiryDate = expiryDate; }
     public boolean isRevoked() { return revoked; }
     public void setRevoked(boolean revoked) { this.revoked = revoked; }
+    public Long getVersion() { return this.version; }
 }
