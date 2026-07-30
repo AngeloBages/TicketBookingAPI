@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ticket_booking.common.exceptions.EmailAlreadyInUseException;
 import com.ticket_booking.common.security.AppUser;
 import static com.ticket_booking.common.security.services.commands.AuthenticationCommands.*;
 import com.ticket_booking.domain.models.User;
@@ -34,7 +35,7 @@ public class AuthenticationService {
     public User registerUser(RegisterUserCommand command) {
 
         if (userRepository.existsByEmail(command.email())) {
-            throw new IllegalArgumentException("Email is already in use!");
+            throw new EmailAlreadyInUseException(command.email());
         }
 
         String hashedPassword = passwordEncoder.encode(command.password());

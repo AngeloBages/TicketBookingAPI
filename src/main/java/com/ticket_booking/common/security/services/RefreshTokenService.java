@@ -1,12 +1,16 @@
 package com.ticket_booking.common.security.services;
 
+import java.security.SecureRandom;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ticket_booking.common.exceptions.RefreshTokenExpiredException;
+import com.ticket_booking.common.exceptions.RefreshTokenNotFoundException;
+import com.ticket_booking.common.exceptions.RefreshTokenReplayException;
 import com.ticket_booking.common.security.properties.SecurityProperties;
 import com.ticket_booking.common.security.repositories.IRefreshTokenRepository;
 import com.ticket_booking.domain.models.RefreshToken;
@@ -14,6 +18,8 @@ import com.ticket_booking.domain.models.User;
 
 @Service
 public class RefreshTokenService {
+	
+	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
 	private final IRefreshTokenRepository refreshTokenRepository;
     private final SecurityProperties securityProperties;
@@ -24,37 +30,50 @@ public class RefreshTokenService {
         this.refreshTokenRepository = refreshTokenRepository;
         this.securityProperties = securityProperties;
     }
+    
+    @Transactional
+    public RefreshToken rotateToken(String token) {
+    	RefreshToken refreshToken = findByToken(token)
+				.orElseThrow(() -> new RefreshTokenNotFoundException(token));
+				
+        verifyExpiration(refreshToken);
+        refreshToken.setRevoked(true);
+        
+        return createRefreshToken(refreshToken.getUser());
+    }
 
     @Transactional
     public RefreshToken createRefreshToken(User user) {
-    	// revokeAllUserTokens() method could be called here, but that would disable the refresh token for multiple devices
+    	String token = generateRefreshToken();
     	
-        String tokenString = UUID.randomUUID().toString() + "-" + UUID.randomUUID().toString();
         Instant expiry = Instant.now().plusMillis(securityProperties.refreshTokenExpiration());
 
-        RefreshToken refreshToken = new RefreshToken(tokenString, user, expiry);
+        RefreshToken refreshToken = new RefreshToken(token, user, expiry);
         return refreshTokenRepository.save(refreshToken);
-    }
-
-    public RefreshToken verifyExpiration(RefreshToken token) {
-    	if (token.isRevoked()) {
-            throw new RuntimeException("Security Alert: Replay attack detected! Token was already used.");
-        }
-
-        if (token.getExpiryDate().isBefore(Instant.now())) {
-            throw new RuntimeException("Refresh token was expired.");
-        }
-        
-        return token;
-    }
-
-    @Transactional
-    public void revokeToken(RefreshToken token) {
-        token.setRevoked(true);
-        refreshTokenRepository.save(token);
     }
 
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
     }	
+
+    private void verifyExpiration(RefreshToken token) {
+    	if (token.isRevoked()) {
+    		refreshTokenRepository.revokeAllUserTokens(token.getUser().getUuid());
+            throw new RefreshTokenReplayException("Replay attack detected for refresh token.");
+        }
+
+        if (token.getExpiryDate().isBefore(Instant.now())) {
+        	refreshTokenRepository.delete(token);
+            throw new RefreshTokenExpiredException();
+        }
+    }
+    
+    private String generateRefreshToken() {
+        byte[] bytes = new byte[64];
+        SECURE_RANDOM.nextBytes(bytes);
+
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(bytes);
+    }
 }

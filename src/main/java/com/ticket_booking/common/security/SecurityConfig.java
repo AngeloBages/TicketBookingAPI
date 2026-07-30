@@ -1,9 +1,6 @@
 package com.ticket_booking.common.security;
 
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -19,9 +16,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@ComponentScan
-@ConfigurationPropertiesScan("com.ticket_booking.common.security")
-@EnableConfigurationProperties
 @EnableWebSecurity
 public class SecurityConfig {
 

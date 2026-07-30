@@ -73,17 +73,12 @@ public class AuthenticationController {
 	@PostMapping("refresh")
 	public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
 	
-		RefreshToken refreshToken = refreshTokenService.findByToken(request.refreshToken())
-				.orElseThrow(() -> new RuntimeException("Refresh token not found in database!"));
-				
-        refreshTokenService.verifyExpiration(refreshToken);
-        refreshTokenService.revokeToken(refreshToken);
-        
-        User user = refreshToken.getUser();
+		RefreshToken newRefreshToken = refreshTokenService.rotateToken(request.refreshToken());
+		
+		User user = newRefreshToken.getUser();
         AppUser userDetails = new AppUser(user);
                     
          String newAccessToken = jwtService.generateToken(userDetails);
-         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
 
         return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken.getToken()));
 	}
