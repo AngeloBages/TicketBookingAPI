@@ -13,15 +13,18 @@ import com.ticket_booking.common.security.dtos.AuthenticationDtos.RegisterUserRe
 import com.ticket_booking.common.security.services.AuthenticationService;
 import com.ticket_booking.common.security.services.JwtService;
 import com.ticket_booking.common.security.services.RefreshTokenService;
-import static com.ticket_booking.common.security.services.commands.AuthenticationCommands.*;
-
+import com.ticket_booking.common.security.services.commands.AuthenticationCommands.AuthenticateUserCommand;
+import com.ticket_booking.common.security.services.commands.AuthenticationCommands.RegisterUserCommand;
 import com.ticket_booking.domain.models.RefreshToken;
 import com.ticket_booking.domain.models.User;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/public/auth")
+@Tag(name = "Authentication", description = "Authentication endpoints")
 public class AuthenticationController {
 
 	private final AuthenticationService authenticationService;
@@ -39,6 +42,9 @@ public class AuthenticationController {
 	}
 	
 	@PostMapping("register")
+	@Operation(
+			summary = "Register a new user",
+			description = "Creates a new account and returns JWT and Refresh Token.")
 	public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterUserRequest request) {
 		
 		User user = authenticationService.registerUser(
@@ -55,6 +61,9 @@ public class AuthenticationController {
 	}
 	
 	@PostMapping("login")
+	@Operation(
+			summary = "Authenticate user",
+			description = "Authenticates a user using email/password.")
 	public ResponseEntity<AuthResponse> logIn(@Valid @RequestBody AuthenticateUserRequest request){
 		
 		AppUser userDetails = authenticationService.authenticate(
@@ -71,6 +80,9 @@ public class AuthenticationController {
 	}
 	
 	@PostMapping("refresh")
+	@Operation(
+			summary = "Refresh JWT",
+			description = "Uses a valid Refresh Token to obtain a new Access Token.")
 	public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
 	
 		RefreshToken newRefreshToken = refreshTokenService.rotateToken(request.refreshToken());
