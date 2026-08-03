@@ -10,7 +10,7 @@ import com.ticket_booking.common.security.dtos.AuthenticationDtos.AuthResponse;
 import com.ticket_booking.common.security.dtos.AuthenticationDtos.AuthenticateUserRequest;
 import com.ticket_booking.common.security.dtos.AuthenticationDtos.RefreshTokenRequest;
 import com.ticket_booking.common.security.dtos.AuthenticationDtos.RegisterUserRequest;
-import com.ticket_booking.common.security.services.AuthenticationService;
+import com.ticket_booking.common.security.services.AuthService;
 import com.ticket_booking.common.security.services.JwtService;
 import com.ticket_booking.common.security.services.RefreshTokenService;
 import com.ticket_booking.common.security.services.commands.AuthenticationCommands.AuthenticateUserCommand;
@@ -24,15 +24,15 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/public/auth")
-@Tag(name = "Authentication", description = "Authentication endpoints")
-public class AuthenticationController {
+@Tag(name = "Public Authentication", description = "Public authentication endpoints")
+public class PublicAuthController {
 
-	private final AuthenticationService authenticationService;
+	private final AuthService authenticationService;
 	private final RefreshTokenService refreshTokenService;
 	private final JwtService jwtService;
 	
-	public AuthenticationController(
-			AuthenticationService authenticationService,
+	public PublicAuthController(
+			AuthService authenticationService,
 			RefreshTokenService refreshTokenService,
 			JwtService jwtService) {
 		

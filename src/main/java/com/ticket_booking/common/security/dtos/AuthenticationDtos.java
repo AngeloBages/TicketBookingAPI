@@ -29,6 +29,9 @@ public class AuthenticationDtos {
 		@NotBlank(message = "Refresh token cannot be blannk") String refreshToken
 	) {}
 
+	public record LogoutRequest(
+		@NotBlank(message = "Refresh token cannot be blannk") String refreshToken
+	) { }
 
 	public record AuthResponse(
 		String accessToken,

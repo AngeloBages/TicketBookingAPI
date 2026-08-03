@@ -9,6 +9,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ticket_booking.common.exceptions.InvalidRefreshTokenException;
 import com.ticket_booking.common.exceptions.RefreshTokenExpiredException;
 import com.ticket_booking.common.exceptions.RefreshTokenNotFoundException;
 import com.ticket_booking.common.exceptions.RefreshTokenReplayException;
@@ -64,9 +65,18 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }	
 
+    @Transactional
+	public void revokeTokenFromUser(Long userId, String token) {
+		int updates = refreshTokenRepository.revokeTokenFromUser(userId, token);
+		
+		if(updates == 0) {
+			throw new InvalidRefreshTokenException();
+		}
+	}
+
     private void verifyExpiration(RefreshToken token) {
     	if (token.isRevoked()) {
-    		refreshTokenRepository.revokeAllUserTokens(token.getUser().getUuid());
+    		refreshTokenRepository.revokeAllUserTokens(token.getUser().getId());
             throw new RefreshTokenReplayException("Replay attack detected for refresh token.");
         }
 
@@ -84,4 +94,5 @@ public class RefreshTokenService {
                 .withoutPadding()
                 .encodeToString(bytes);
     }
+
 }

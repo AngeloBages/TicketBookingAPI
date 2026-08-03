@@ -15,13 +15,13 @@ import com.ticket_booking.user.repositories.IUserRepository;
 
 
 @Service
-public class AuthenticationService {
+public class AuthService {
 
 	private final AuthenticationManager authenticationManager;
 	private final IUserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	
-	public AuthenticationService(
+	public AuthService(
 			AuthenticationManager authenticationManager,
 			IUserRepository userRepository,
 			PasswordEncoder passwordEncoder) {

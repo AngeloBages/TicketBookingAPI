@@ -1,0 +1,40 @@
+package com.ticket_booking.common.security;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.ticket_booking.common.security.dtos.AuthenticationDtos.LogoutRequest;
+import com.ticket_booking.common.security.services.RefreshTokenService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("api/auth")
+@Tag(name = "Authentication", description = "Private authentication endpoints")
+public class AuthController {
+	
+
+	private final RefreshTokenService refreshTokenService;
+	
+	public AuthController(RefreshTokenService refreshTokenService) {
+		this.refreshTokenService = refreshTokenService;
+	}
+	
+	@PostMapping("logout")
+	@Operation(
+			summary = "Logout user",
+			description = "Revokes the authenticated user's valid Refresh Token")
+	public ResponseEntity<Void> logout(
+			@AuthenticationPrincipal AppUser user,
+			@Valid @RequestBody LogoutRequest request) {
+		
+		refreshTokenService.revokeTokenFromUser(user.getUser().getId(), request.refreshToken());
+		return ResponseEntity.noContent().build();
+	}
+}
