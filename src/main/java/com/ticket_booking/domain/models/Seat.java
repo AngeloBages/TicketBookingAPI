@@ -28,7 +28,7 @@ public class Seat {
     private int number;
 
     @Column(name = "seat_row", nullable = false)
-    private int row;
+    private String row;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -44,11 +44,7 @@ public class Seat {
 
     public Long getId() { return id; }
     public int getNumber() { return number; }
-    public void setNumber(int number) { this.number = number; }
-    public int getRow() { return row; }
-    public void setRow(int row) { this.row = row; }
+    public String getRow() { return row; }
     public SeatStatus getStatus() { return status; }
-    public void setStatus(SeatStatus status) { this.status = status; }
     public Venue getVenue() { return venue; }
-    public void setVenue(Venue venue) { this.venue = venue; }
 }

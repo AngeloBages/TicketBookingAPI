@@ -1,6 +1,9 @@
 package com.ticket_booking.domain.models;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -15,6 +18,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
@@ -38,6 +42,12 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+    
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
@@ -49,21 +59,87 @@ public class User {
 
     
     @PrePersist
-    public void generateUuid() {
+    public void onPrePersist() {
         if (this.uuid == null) {
             this.uuid = UUID.randomUUID();
         }
+        
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = createdAt;
+    }
+    
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    
+    protected User() {}
+    
+    public static User create(
+            String name,
+            String email,
+            String encodedPassword,
+            Set<Role> roles) {
+
+        User user = new User();
+
+        user.name = user.normalizeName(name);
+        user.email = user.normalizeEmail(email);
+        user.password = encodedPassword;
+        user.roles.addAll(roles);
+
+        return user;
+    }
+    
+    public boolean hasEmail(String email) {
+
+        return this.email.equalsIgnoreCase(email);
+    }
+    
+    public void changeName(String name) {
+
+        String normalized = normalizeName(name);
+
+        if (normalized.equals(this.name)) {
+            return;
+        }
+
+        this.name = normalized;
     }
 
+    public void changeEmail(String email) {
+
+        String normalized = normalizeEmail(email);
+
+        if (normalized.equals(this.email)) {
+            return;
+        }
+
+        this.email = normalized;
+    }
+
+    public void changePassword(String encodedPassword) {
+
+        this.password = Objects.requireNonNull(encodedPassword);
+    }
+    
+    private String normalizeName(String name) {
+
+        return name.trim()
+                .replaceAll("\\s+", " ");
+    }
+    
+    private String normalizeEmail(String email) {
+
+        return email.trim()
+                .toLowerCase(Locale.ROOT);
+    }
 
     public Long getId() { return id; }
     public UUID getUuid() { return uuid; }
     public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
     public Set<Role> getRoles() { return roles; }
-    public void setRoles(Set<Role> roles) { this.roles = roles; }
 }

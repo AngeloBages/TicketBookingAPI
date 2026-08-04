@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import com.ticket_booking.domain.models.enums.BookingStatus;
 
@@ -31,6 +32,9 @@ public class Booking {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "booking_seq")
 	@SequenceGenerator(name = "booking_seq", sequenceName = "booking_seq_generator")
 	private Long id;
+	
+	@Column(unique = true, nullable = false, updatable = false)
+    private UUID uuid;
 	
 	@Column(nullable = false)
 	private LocalDateTime bookingDate;
@@ -62,12 +66,22 @@ public class Booking {
 	
 	@PrePersist
     public void onPrePersist() {
-        if (this.bookingDate == null) {
-            this.bookingDate = LocalDateTime.now();
+		if (this.uuid == null) {
+            this.uuid = UUID.randomUUID();
         }
+		
+        this.bookingDate = LocalDateTime.now();
     }
 	
 
+	public UUID getUuid() {
+		return this.uuid;
+	}
+	
+	public BookingStatus getStatus() {
+		return this.status;
+	}
+	
 	public LocalDateTime getBookingDate() {
 		return bookingDate;
 	}

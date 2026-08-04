@@ -9,7 +9,6 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ticket_booking.common.exceptions.InvalidRefreshTokenException;
 import com.ticket_booking.common.exceptions.RefreshTokenExpiredException;
 import com.ticket_booking.common.exceptions.RefreshTokenNotFoundException;
 import com.ticket_booking.common.exceptions.RefreshTokenReplayException;
@@ -70,10 +69,14 @@ public class RefreshTokenService {
 		int updates = refreshTokenRepository.revokeTokenFromUser(userId, token);
 		
 		if(updates == 0) {
-			throw new InvalidRefreshTokenException();
+			throw new RefreshTokenNotFoundException();
 		}
 	}
 
+   public void revokeAllUserTokens(Long userId) {
+	   refreshTokenRepository.revokeAllUserTokens(userId);
+   }
+    
     private void verifyExpiration(RefreshToken token) {
     	if (token.isRevoked()) {
     		refreshTokenRepository.revokeAllUserTokens(token.getUser().getId());

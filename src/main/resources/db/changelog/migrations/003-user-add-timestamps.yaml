@@ -1,0 +1,40 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-add-timestamp-columns-user
+      author: angelo-b
+
+      changes:
+
+        - addColumn:
+            tableName: app_user
+            columns:
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+
+        - update:
+            tableName: app_user
+            columns:
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_TIMESTAMP
+
+              - column:
+                  name: updated_at
+                  valueComputed: CURRENT_TIMESTAMP
+
+        - addNotNullConstraint:
+            tableName: app_user
+            columnName: created_at
+            columnDataType: TIMESTAMP
+
+        - addNotNullConstraint:
+            tableName: app_user
+            columnName: updated_at
+            columnDataType: TIMESTAMP

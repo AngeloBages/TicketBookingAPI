@@ -10,6 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ticket_booking.common.exceptions.EmailAlreadyInUseException;
 import com.ticket_booking.common.security.AppUser;
 import static com.ticket_booking.common.security.services.commands.AuthenticationCommands.*;
+
+import java.util.HashSet;
+
 import com.ticket_booking.domain.models.User;
 import com.ticket_booking.user.repositories.IUserRepository;
 
@@ -40,10 +43,11 @@ public class AuthService {
 
         String hashedPassword = passwordEncoder.encode(command.password());
 
-        User newUser = new User();
-        newUser.setName(command.name());
-        newUser.setEmail(command.email());
-        newUser.setPassword(hashedPassword);
+        User newUser = User.create(
+        		command.name(), 
+        		command.email(), 
+        		hashedPassword, 
+        		new HashSet<>());
 
         return userRepository.save(newUser);
 	}
@@ -56,15 +60,4 @@ public class AuthService {
 		
 		return (AppUser) authentication.getPrincipal();
 	}
-	
-	/* public String authenticateAndGenerateToken(AuthenticateUserCommand command) {
-
-		UsernamePasswordAuthenticationToken authToken = 
-		        new UsernamePasswordAuthenticationToken(command.email(), command.password());
-		
-		Authentication authentication = authenticationManager.authenticate(authToken);
-		UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-		
-		return jwtService.generateToken(userDetails);
-	} */
 }

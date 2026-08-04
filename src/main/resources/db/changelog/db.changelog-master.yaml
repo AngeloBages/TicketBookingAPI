@@ -4,3 +4,12 @@ databaseChangeLog:
 
   - include:
       file: classpath:db/changelog/migrations/002-refresh-token-add-version.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/003-user-add-timestamps.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/004-booking-event-venue-add-uuid.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/005-seat-change-row-type-to-string.yaml

@@ -1,6 +1,6 @@
 package com.ticket_booking.common.exceptions;
 
-public class RefreshTokenExpiredException extends RuntimeException {
+public class RefreshTokenExpiredException extends DomainException {
 
     /**
 	 * 

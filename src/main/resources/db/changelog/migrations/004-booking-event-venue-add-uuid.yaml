@@ -1,0 +1,72 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-add-uuid-column-booking-event-venue
+      author: angelo-b
+
+      changes:
+
+        - addColumn:
+            tableName: booking
+            columns:
+              - column:
+                  name: uuid
+                  type: UUID
+
+        - addColumn:
+            tableName: event
+            columns:
+              - column:
+                  name: uuid
+                  type: UUID
+
+        - addColumn:
+            tableName: venue
+            columns:
+              - column:
+                  name: uuid
+                  type: UUID
+
+        - sql:
+            sql: |
+              UPDATE booking
+              SET uuid = gen_random_uuid()
+              WHERE uuid IS NULL;
+
+              UPDATE event
+              SET uuid = gen_random_uuid()
+              WHERE uuid IS NULL;
+
+              UPDATE venue
+              SET uuid = gen_random_uuid()
+              WHERE uuid IS NULL;
+
+        - addNotNullConstraint:
+            tableName: booking
+            columnName: uuid
+            columnDataType: UUID
+
+        - addNotNullConstraint:
+            tableName: event
+            columnName: uuid
+            columnDataType: UUID
+
+        - addNotNullConstraint:
+            tableName: venue
+            columnName: uuid
+            columnDataType: UUID
+
+        - addUniqueConstraint:
+            tableName: booking
+            columnNames: uuid
+            constraintName: uk_booking_uuid
+
+        - addUniqueConstraint:
+            tableName: event
+            columnNames: uuid
+            constraintName: uk_event_uuid
+
+        - addUniqueConstraint:
+            tableName: venue
+            columnNames: uuid
+            constraintName: uk_venue_uuid

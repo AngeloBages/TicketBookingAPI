@@ -1,0 +1,12 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 02-change-seat-row-to-string
+      author: angelo-b
+
+      changes:
+
+        - modifyDataType:
+            tableName: seat
+            columnName: seat_row
+            newDataType: VARCHAR(20)

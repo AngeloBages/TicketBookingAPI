@@ -1,6 +1,6 @@
 package com.ticket_booking.common.exceptions;
 
-public class EmailAlreadyInUseException extends RuntimeException {
+public class EmailAlreadyInUseException extends DomainException {
 
     /**
 	 * 
