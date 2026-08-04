@@ -9,10 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ticket_booking.common.exceptions.EmailAlreadyInUseException;
 import com.ticket_booking.common.security.AppUser;
+import com.ticket_booking.common.security.dtos.AuthenticationDtos.AuthResponse;
+
 import static com.ticket_booking.common.security.services.commands.AuthenticationCommands.*;
 
 import java.util.HashSet;
 
+import com.ticket_booking.domain.models.RefreshToken;
 import com.ticket_booking.domain.models.User;
 import com.ticket_booking.user.repositories.IUserRepository;
 
@@ -21,21 +24,41 @@ import com.ticket_booking.user.repositories.IUserRepository;
 public class AuthService {
 
 	private final AuthenticationManager authenticationManager;
+	private final JwtService jwtService;
+	private final RefreshTokenService refreshTokenService;
 	private final IUserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	
 	public AuthService(
 			AuthenticationManager authenticationManager,
+			JwtService jwtService,
+			RefreshTokenService refreshTokenService,
 			IUserRepository userRepository,
 			PasswordEncoder passwordEncoder) {
 		
 		this.authenticationManager = authenticationManager;
+		this.jwtService = jwtService;
+		this.refreshTokenService = refreshTokenService;
 		this.userRepository = userRepository;
 		this.passwordEncoder = passwordEncoder;
 	}
 	
 	@Transactional
-    public User registerUser(RegisterUserCommand command) {
+	public AuthResponse login(AuthenticateUserCommand command) {
+		
+		Authentication authentication = authenticationManager.authenticate(
+				new UsernamePasswordAuthenticationToken(
+						command.email(), 
+						command.password())
+				);
+		
+		AppUser userDetails = (AppUser) authentication.getPrincipal();
+		
+		return issueTokens(userDetails.getUser());
+	}
+	
+	@Transactional
+    public AuthResponse register(RegisterUserCommand command) {
 
         if (userRepository.existsByEmail(command.email())) {
             throw new EmailAlreadyInUseException(command.email());
@@ -48,16 +71,37 @@ public class AuthService {
         		command.email(), 
         		hashedPassword, 
         		new HashSet<>());
+        
+        newUser = userRepository.save(newUser);
 
-        return userRepository.save(newUser);
+		return issueTokens(newUser);
 	}
 	
-	public AppUser authenticate(AuthenticateUserCommand command) {
+	@Transactional
+	public AuthResponse refresh(String refreshToken) {
 
-		Authentication authentication = authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(command.email(), command.password())
-				);
+		RefreshToken newRefreshToken = refreshTokenService.rotateToken(refreshToken);
+
+		User user = newRefreshToken.getUser();
+		String newAccessToken = jwtService.generateToken(new AppUser(user));
 		
-		return (AppUser) authentication.getPrincipal();
+		return new AuthResponse(newAccessToken, newRefreshToken.getToken());
+	}
+	
+	@Transactional
+	public void logout(Long userId, String refreshToken) {
+		refreshTokenService.revokeTokenFromUser(userId, refreshToken);
+	}
+	
+	private AuthResponse issueTokens(User user) {
+
+	    AppUser principal = new AppUser(user);
+
+	    String accessToken = jwtService.generateToken(principal);
+	    RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+
+	    return new AuthResponse(
+	            accessToken,
+	            refreshToken.getToken());
 	}
 }

@@ -1,4 +1,4 @@
-package com.ticket_booking.user.services;
+package com.ticket_booking.user;
 
 import java.util.stream.Collectors;
 

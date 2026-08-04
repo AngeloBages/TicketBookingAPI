@@ -11,12 +11,8 @@ import com.ticket_booking.common.security.dtos.AuthenticationDtos.AuthenticateUs
 import com.ticket_booking.common.security.dtos.AuthenticationDtos.RefreshTokenRequest;
 import com.ticket_booking.common.security.dtos.AuthenticationDtos.RegisterUserRequest;
 import com.ticket_booking.common.security.services.AuthService;
-import com.ticket_booking.common.security.services.JwtService;
-import com.ticket_booking.common.security.services.RefreshTokenService;
 import com.ticket_booking.common.security.services.commands.AuthenticationCommands.AuthenticateUserCommand;
 import com.ticket_booking.common.security.services.commands.AuthenticationCommands.RegisterUserCommand;
-import com.ticket_booking.domain.models.RefreshToken;
-import com.ticket_booking.domain.models.User;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,18 +23,12 @@ import jakarta.validation.Valid;
 @Tag(name = "Public Authentication", description = "Public authentication endpoints")
 public class PublicAuthController {
 
-	private final AuthService authenticationService;
-	private final RefreshTokenService refreshTokenService;
-	private final JwtService jwtService;
+	private final AuthService authService;
 	
 	public PublicAuthController(
-			AuthService authenticationService,
-			RefreshTokenService refreshTokenService,
-			JwtService jwtService) {
+			AuthService authService) {
 		
-		this.authenticationService = authenticationService;
-		this.refreshTokenService = refreshTokenService;
-		this.jwtService = jwtService;
+		this.authService = authService;
 	}
 	
 	@PostMapping("register")
@@ -47,17 +37,15 @@ public class PublicAuthController {
 			description = "Creates a new account and returns JWT and Refresh Token.")
 	public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterUserRequest request) {
 		
-		User user = authenticationService.registerUser(
-				new RegisterUserCommand(
+		return ResponseEntity.ok(
+				authService.register(
+					new RegisterUserCommand(
 						request.email(), 
 						request.password(), 
 						request.name()
-		));
-		
-		String accessToken = jwtService.generateToken(new AppUser(user));
-		RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
-
-        return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken.getToken()));
+					)
+				)
+			);
 	}
 	
 	@PostMapping("login")
@@ -66,17 +54,14 @@ public class PublicAuthController {
 			description = "Authenticates a user using email/password.")
 	public ResponseEntity<AuthResponse> logIn(@Valid @RequestBody AuthenticateUserRequest request){
 		
-		AppUser userDetails = authenticationService.authenticate(
-				new AuthenticateUserCommand(
+		return ResponseEntity.ok(
+				authService.login(
+					new AuthenticateUserCommand(
 						request.email(),
 						request.password()
+					)
 				)
-		);
-		
-		String accessToken = jwtService.generateToken(userDetails);
-		RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUser());
-
-        return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken.getToken()));
+			);
 	}
 	
 	@PostMapping("refresh")
@@ -85,13 +70,10 @@ public class PublicAuthController {
 			description = "Uses a valid Refresh Token to obtain a new Access Token.")
 	public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
 	
-		RefreshToken newRefreshToken = refreshTokenService.rotateToken(request.refreshToken());
-		
-		User user = newRefreshToken.getUser();
-        AppUser userDetails = new AppUser(user);
-                    
-         String newAccessToken = jwtService.generateToken(userDetails);
-
-        return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken.getToken()));
+		return ResponseEntity.ok(
+				authService.refresh(
+						request.refreshToken()
+				)
+			);
 	}
 }

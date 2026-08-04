@@ -1,33 +1,14 @@
-package com.ticket_booking.booking.services;
+	package com.ticket_booking.booking;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.ticket_booking.booking.repositories.IBookingRepository;
+import com.ticket_booking.booking.dtos.BookingDtos.BookingResponse;
+import com.ticket_booking.booking.dtos.BookingDtos.EventSummaryResponse;
+import com.ticket_booking.booking.dtos.BookingDtos.SeatResponse;
+import com.ticket_booking.booking.dtos.BookingDtos.VenueSummaryResponse;
 import com.ticket_booking.domain.models.Booking;
-import static com.ticket_booking.booking.dtos.BookingDtos.*;
 
-@Service
-public class BookingService {
-	
-	private final IBookingRepository bookingRepository;
-	
-	public BookingService(IBookingRepository bookingRepository) {
-		this.bookingRepository = bookingRepository;
-	}
+public class BookingMapper {
 
-	@Transactional(readOnly = true)
-	public List<BookingResponse> getUserBookings(Long userId) {
-
-	    return bookingRepository.findAllBookingsByUserId(userId)
-	    		.stream()
-	            .map(booking -> toResponse(booking))
-	            .toList();
-	}
-	
-	private BookingResponse toResponse(Booking booking) {
+	public static BookingResponse toResponse(Booking booking) {
 
 	    return new BookingResponse(
 	            booking.getUuid(),

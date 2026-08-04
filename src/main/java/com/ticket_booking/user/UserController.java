@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ticket_booking.booking.BookingService;
 import com.ticket_booking.booking.dtos.BookingDtos.BookingResponse;
-import com.ticket_booking.booking.services.BookingService;
 import com.ticket_booking.common.security.AppUser;
 import com.ticket_booking.domain.models.User;
 import static com.ticket_booking.user.commands.UserCommands.*;
@@ -19,7 +19,6 @@ import static com.ticket_booking.user.commands.UserCommands.*;
 import java.util.List;
 
 import static com.ticket_booking.user.dtos.UserDtos.*;
-import com.ticket_booking.user.services.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
