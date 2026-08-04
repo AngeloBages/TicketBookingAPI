@@ -1,17 +1,24 @@
 package com.ticket_booking.common.exceptions;
 
+import org.springframework.http.HttpStatus;
+
 public class RefreshTokenNotFoundException extends DomainException {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 8263489383113746946L;
-
-	public RefreshTokenNotFoundException() {
-        super("Refresh token not found.");
+    private static final long serialVersionUID = 8263489383113746946L;
+    
+    public RefreshTokenNotFoundException() {
+        super(
+            HttpStatus.NOT_FOUND,
+            "Refresh Token Not Found",
+            "Refresh token not found."
+        );
     }
 
     public RefreshTokenNotFoundException(String token) {
-        super("Refresh token not found: " + token);
+        super(
+            HttpStatus.NOT_FOUND,
+            "Refresh Token Not Found",
+            "Refresh token not found: " + token
+        );
     }
 }

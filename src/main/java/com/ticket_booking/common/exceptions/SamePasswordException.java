@@ -1,13 +1,16 @@
 package com.ticket_booking.common.exceptions;
 
+import org.springframework.http.HttpStatus;
+
 public class SamePasswordException extends DomainException {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -3494749624312285271L;
+    private static final long serialVersionUID = -3494749624312285271L;
 
-	public SamePasswordException() {
-		super("The new password must be different from the current password.");
-	}
+    public SamePasswordException() {
+        super(
+            HttpStatus.BAD_REQUEST,
+            "Invalid Password",
+            "The new password must be different from the current password."
+        );
+    }
 }
