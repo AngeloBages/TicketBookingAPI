@@ -34,7 +34,10 @@ public class AuthController {
 			@AuthenticationPrincipal AppUser user,
 			@Valid @RequestBody LogoutRequest request) {
 		
-		authService.logout(user.getUser().getId(), request.refreshToken());
+		authService.logout(
+				user.getUser().getId(), 
+				request.refreshToken()
+		);
 		
 		return ResponseEntity.noContent().build();
 	}

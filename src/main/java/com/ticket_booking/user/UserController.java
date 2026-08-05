@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ticket_booking.booking.BookingService;
 import com.ticket_booking.booking.dtos.BookingDtos.BookingResponse;
 import com.ticket_booking.common.security.AppUser;
-import com.ticket_booking.domain.models.User;
 import static com.ticket_booking.user.commands.UserCommands.*;
 
 import java.util.List;
@@ -71,10 +70,8 @@ public class UserController {
 			@AuthenticationPrincipal AppUser appUser,
 			@Valid @RequestBody ChangePasswordRequest request) {
 		
-		User user = appUser.getUser();
-
 		userService.changePassword(new ChangePasswordCommand(
-				user.getId(),
+				appUser.getUser().getId(),
 		        request.currentPassword(),
 		        request.newPassword(),
 		        request.confirmPassword()
