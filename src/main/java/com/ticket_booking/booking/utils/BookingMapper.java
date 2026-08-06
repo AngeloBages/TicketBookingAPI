@@ -1,4 +1,4 @@
-	package com.ticket_booking.booking;
+	package com.ticket_booking.booking.utils;
 
 import com.ticket_booking.booking.dtos.BookingDtos.BookingResponse;
 import com.ticket_booking.booking.dtos.BookingDtos.EventSummaryResponse;

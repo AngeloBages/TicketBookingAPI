@@ -8,20 +8,24 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ticket_booking.booking.BookingService;
 import com.ticket_booking.booking.dtos.BookingDtos.BookingResponse;
+import com.ticket_booking.common.CursorPage;
 import com.ticket_booking.common.security.AppUser;
-import static com.ticket_booking.user.commands.UserCommands.*;
-
-import java.util.List;
-
-import static com.ticket_booking.user.dtos.UserDtos.*;
+import com.ticket_booking.user.commands.UserCommands.ChangePasswordCommand;
+import com.ticket_booking.user.commands.UserCommands.UpdateUserCommand;
+import com.ticket_booking.user.dtos.UserDtos.ChangePasswordRequest;
+import com.ticket_booking.user.dtos.UserDtos.UpdateUserRequest;
+import com.ticket_booking.user.dtos.UserDtos.UserInfoResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 @RestController
 @RequestMapping("api/users")
@@ -93,9 +97,15 @@ public class UserController {
 	
 	@GetMapping("me/bookings")
 	@Operation(summary = "Get authenticated user's bookings' details")
-	public ResponseEntity<List<BookingResponse>> getUserBookings(@AuthenticationPrincipal AppUser appUser) {
+	public ResponseEntity<CursorPage<BookingResponse>> getUserBookings(
+			@AuthenticationPrincipal AppUser appUser,
+			@RequestParam(required = false) String cursor,
+			@RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit) {
 		
 		return ResponseEntity.ok(
-				bookingService.getUserBookings(appUser.getUser().getId()));
+				bookingService.getUserBookings(
+						appUser.getUser().getId(),
+						cursor,
+						limit));
 	}
 }
