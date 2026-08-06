@@ -13,3 +13,6 @@ databaseChangeLog:
 
   - include:
       file: classpath:db/changelog/migrations/005-seat-change-row-type-to-string.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/006-insert-admin-role.yaml

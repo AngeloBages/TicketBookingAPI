@@ -1,0 +1,17 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-insert-admin-role
+      author: angelo-b
+
+      changes:
+
+        - insert:
+            tableName: app_role
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: role_seq_generator
+              - column:
+                  name: name
+                  value: ROLE_ADMIN
