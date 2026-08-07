@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ticket_booking.common.exceptions.EmailAlreadyInUseException;
 import com.ticket_booking.common.security.AppUser;
-import com.ticket_booking.common.security.dtos.AuthenticationDtos.AuthResponse;
+import com.ticket_booking.common.security.responses.AuthenticationResponses.AuthResponse;
 
 import static com.ticket_booking.common.security.services.commands.AuthenticationCommands.*;
 

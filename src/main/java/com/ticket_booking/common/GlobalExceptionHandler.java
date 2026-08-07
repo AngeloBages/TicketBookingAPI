@@ -1,6 +1,7 @@
 package com.ticket_booking.common;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -10,7 +11,9 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +23,7 @@ import com.ticket_booking.common.exceptions.DomainException;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
+import tools.jackson.databind.exc.InvalidFormatException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -51,6 +55,51 @@ public class GlobalExceptionHandler {
         		"Token is invalid or expired.",
         		request
         );
+    }
+    
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleAuthorizationDenied(
+            AuthorizationDeniedException ex,
+            HttpServletRequest request) {
+
+        return problem(
+                HttpStatus.FORBIDDEN,
+                "Access Denied",
+                "You do not have permission to access this resource.",
+                request);
+    }
+    
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ProblemDetail> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request) {
+
+        Throwable cause = ex.getMostSpecificCause();
+
+        if (cause instanceof InvalidFormatException ife &&
+            ife.getTargetType().isEnum()) {
+
+            String field = ife.getPath().isEmpty()
+                    ? "value"
+                    : ife.getPath().get(0).getPropertyName();
+
+            String allowedValues = Arrays.stream(ife.getTargetType().getEnumConstants())
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+
+            return problem(
+                    HttpStatus.BAD_REQUEST,
+                    "Invalid Request",
+                    "Invalid value for '%s'. Allowed values are: %s."
+                            .formatted(field, allowedValues),
+                    request);
+        }
+
+        return problem(
+                HttpStatus.BAD_REQUEST,
+                "Malformed JSON",
+                "The request body is malformed.",
+                request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

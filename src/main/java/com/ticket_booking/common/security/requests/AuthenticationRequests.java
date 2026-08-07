@@ -1,9 +1,9 @@
-package com.ticket_booking.common.security.dtos;
+package com.ticket_booking.common.security.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public class AuthenticationDtos {
+public class AuthenticationRequests {
 	
 	public record RegisterUserRequest(
 		@NotBlank String name,
@@ -23,7 +23,6 @@ public class AuthenticationDtos {
 		@NotBlank(message = "Password cannot be blank")
 		String password
 	) {}
-				
 
 	public record RefreshTokenRequest(
 		@NotBlank(message = "Refresh token cannot be blannk") String refreshToken
@@ -32,9 +31,4 @@ public class AuthenticationDtos {
 	public record LogoutRequest(
 		@NotBlank(message = "Refresh token cannot be blannk") String refreshToken
 	) { }
-
-	public record AuthResponse(
-		String accessToken,
-		String refreshToken
-	) {}
 }

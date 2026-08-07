@@ -1,13 +1,13 @@
 package com.ticket_booking.domain.models;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -49,7 +49,7 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",
         joinColumns = @JoinColumn(name = "user_id"),
@@ -124,6 +124,18 @@ public class User {
         this.password = Objects.requireNonNull(encodedPassword);
     }
     
+    public void assignRole(Role role) {
+        roles.add(role);
+    }
+
+    public void revokeRole(Role role) {
+        roles.remove(role);
+    }
+    
+    public boolean hasRole(Role role) {
+    	return this.roles.contains(role);
+    }
+    
     private String normalizeName(String name) {
 
         return name.trim()
@@ -141,5 +153,5 @@ public class User {
     public String getName() { return name; }
     public String getEmail() { return email; }
     public String getPassword() { return password; }
-    public Set<Role> getRoles() { return roles; }
+    public Set<Role> getRoles() { return Collections.unmodifiableSet(roles); }
 }

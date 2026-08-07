@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,7 +14,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.ticket_booking.common.security.services.JwtService;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -58,19 +58,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             filterChain.doFilter(request, response);
             
-        } catch (ExpiredJwtException ex) {
-            SecurityContextHolder.clearContext();
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has expired: " + ex.getMessage());
-        } catch (JwtException | IllegalArgumentException ex) {
-            SecurityContextHolder.clearContext();
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token: " + ex.getMessage());
-        } catch (Exception ex) {
-            SecurityContextHolder.clearContext();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Authentication error: " + ex.getMessage());
+        } catch (JwtException | AuthenticationException ex) {
+        	SecurityContextHolder.clearContext();
+            throw ex;
         }
     }
 	
-	public String extractJwtFromRequest(HttpServletRequest request) {
+	private String extractJwtFromRequest(HttpServletRequest request) {
 		String authHeader = request.getHeader("Authorization");
 
 		if (Strings.isNotBlank(authHeader) && authHeader.startsWith("Bearer ")) {

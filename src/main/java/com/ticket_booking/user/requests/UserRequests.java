@@ -1,13 +1,10 @@
-package com.ticket_booking.user.dtos;
-
-import java.util.Set;
-import java.util.UUID;
+package com.ticket_booking.user.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class UserDtos {
+public class UserRequests {
 	
 	public record UpdateUserRequest(
 		    @NotBlank
@@ -30,12 +27,5 @@ public class UserDtos {
 
 		    @NotBlank
 		    String confirmPassword
-	) {}
-
-	public record UserInfoResponse(
-			UUID uuid,
-			String name,
-			String email,
-			Set<String> roles
 	) {}
 }

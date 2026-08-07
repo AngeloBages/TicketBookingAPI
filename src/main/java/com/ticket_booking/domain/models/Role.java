@@ -30,7 +30,7 @@ public class Role {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name);
+		return Objects.hash(name);
 	}
 
 	@Override
@@ -40,11 +40,10 @@ public class Role {
 		if (obj == null || getClass() != obj.getClass())
 			return false;
 		Role other = (Role) obj;
-		return Objects.equals(id, other.id) && Objects.equals(name, other.name);
+		return Objects.equals(name, other.name);
 	}
 	
 
 	public Long getId() { return id; }
 	public String getName() { return name; }
-	public void setName(String name) { this.name = name; }
 }

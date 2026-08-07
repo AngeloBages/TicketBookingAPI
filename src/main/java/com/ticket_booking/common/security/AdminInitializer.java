@@ -8,6 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ticket_booking.common.AppRole;
+import com.ticket_booking.common.exceptions.RoleNotFoundException;
 import com.ticket_booking.common.security.properties.AdminProperties;
 import com.ticket_booking.domain.models.Role;
 import com.ticket_booking.domain.models.User;
@@ -38,12 +40,12 @@ public class AdminInitializer implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
 
-        if (userRepository.existsByEmail("admin@example.com")) {
+        if (userRepository.existsByEmail(properties.email())) {
             return;
         }
 
-        Role adminRole = roleRepository.findByName("ROLE_ADMIN")
-                .orElseThrow();
+        Role adminRole = roleRepository.findByName(AppRole.ROLE_ADMIN.name())
+        		.orElseThrow(() -> new RoleNotFoundException(AppRole.ROLE_ADMIN.name()));
 
         User admin = User.create(
                 properties.name(),

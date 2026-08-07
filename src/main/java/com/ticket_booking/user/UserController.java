@@ -17,9 +17,8 @@ import com.ticket_booking.common.CursorPage;
 import com.ticket_booking.common.security.AppUser;
 import com.ticket_booking.user.commands.UserCommands.ChangePasswordCommand;
 import com.ticket_booking.user.commands.UserCommands.UpdateUserCommand;
-import com.ticket_booking.user.dtos.UserDtos.ChangePasswordRequest;
-import com.ticket_booking.user.dtos.UserDtos.UpdateUserRequest;
-import com.ticket_booking.user.dtos.UserDtos.UserInfoResponse;
+import com.ticket_booking.user.responses.UserResponses.UserInfoResponse;
+import static com.ticket_booking.user.requests.UserRequests.*;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

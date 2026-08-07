@@ -15,8 +15,8 @@ import com.ticket_booking.common.security.services.RefreshTokenService;
 import com.ticket_booking.domain.models.User;
 import com.ticket_booking.user.commands.UserCommands.ChangePasswordCommand;
 import com.ticket_booking.user.commands.UserCommands.UpdateUserCommand;
-import com.ticket_booking.user.dtos.UserDtos.UserInfoResponse;
 import com.ticket_booking.user.repositories.IUserRepository;
+import com.ticket_booking.user.responses.UserResponses.UserInfoResponse;
 
 
 @Service

@@ -6,10 +6,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ticket_booking.common.security.dtos.AuthenticationDtos.AuthResponse;
-import com.ticket_booking.common.security.dtos.AuthenticationDtos.AuthenticateUserRequest;
-import com.ticket_booking.common.security.dtos.AuthenticationDtos.RefreshTokenRequest;
-import com.ticket_booking.common.security.dtos.AuthenticationDtos.RegisterUserRequest;
+import com.ticket_booking.common.security.responses.AuthenticationResponses.AuthResponse;
+import static com.ticket_booking.common.security.requests.AuthenticationRequests.*;
 import com.ticket_booking.common.security.services.AuthService;
 import com.ticket_booking.common.security.services.commands.AuthenticationCommands.AuthenticateUserCommand;
 import com.ticket_booking.common.security.services.commands.AuthenticationCommands.RegisterUserCommand;
