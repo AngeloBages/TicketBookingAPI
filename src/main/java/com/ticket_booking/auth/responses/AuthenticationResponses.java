@@ -1,4 +1,4 @@
-package com.ticket_booking.common.security.responses;
+package com.ticket_booking.auth.responses;
 
 public class AuthenticationResponses {
 

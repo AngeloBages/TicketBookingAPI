@@ -1,11 +1,10 @@
-package com.ticket_booking.common.security.services;
+package com.ticket_booking.common.security;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.ticket_booking.common.security.AppUser;
 import com.ticket_booking.domain.models.User;
 import com.ticket_booking.user.repositories.IUserRepository;
 

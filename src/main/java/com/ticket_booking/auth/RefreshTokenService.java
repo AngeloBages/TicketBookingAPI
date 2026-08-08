@@ -1,4 +1,4 @@
-package com.ticket_booking.common.security.services;
+package com.ticket_booking.auth;
 
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -9,11 +9,11 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ticket_booking.common.exceptions.RefreshTokenExpiredException;
-import com.ticket_booking.common.exceptions.RefreshTokenNotFoundException;
-import com.ticket_booking.common.exceptions.RefreshTokenReplayException;
+import com.ticket_booking.auth.exceptions.RefreshTokenExpiredException;
+import com.ticket_booking.auth.exceptions.RefreshTokenNotFoundException;
+import com.ticket_booking.auth.exceptions.RefreshTokenReplayException;
+import com.ticket_booking.auth.repositories.IRefreshTokenRepository;
 import com.ticket_booking.common.security.properties.SecurityProperties;
-import com.ticket_booking.common.security.repositories.IRefreshTokenRepository;
 import com.ticket_booking.domain.models.RefreshToken;
 import com.ticket_booking.domain.models.User;
 

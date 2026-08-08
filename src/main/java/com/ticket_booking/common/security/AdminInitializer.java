@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ticket_booking.common.AppRole;
-import com.ticket_booking.common.exceptions.RoleNotFoundException;
 import com.ticket_booking.common.security.properties.AdminProperties;
 import com.ticket_booking.domain.models.Role;
 import com.ticket_booking.domain.models.User;
+import com.ticket_booking.user.exceptions.RoleNotFoundException;
 import com.ticket_booking.user.repositories.IRoleRepository;
 import com.ticket_booking.user.repositories.IUserRepository;
 

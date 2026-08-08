@@ -1,4 +1,4 @@
-package com.ticket_booking.common.security.services.commands;
+package com.ticket_booking.auth.commands;
 
 public class AuthenticationCommands {
 

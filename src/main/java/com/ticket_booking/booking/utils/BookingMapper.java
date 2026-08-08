@@ -1,9 +1,9 @@
 	package com.ticket_booking.booking.utils;
 
-import com.ticket_booking.booking.dtos.BookingDtos.BookingResponse;
-import com.ticket_booking.booking.dtos.BookingDtos.EventSummaryResponse;
-import com.ticket_booking.booking.dtos.BookingDtos.SeatResponse;
-import com.ticket_booking.booking.dtos.BookingDtos.VenueSummaryResponse;
+import com.ticket_booking.booking.responses.BookingResponses.BookingResponse;
+import com.ticket_booking.booking.responses.BookingResponses.EventSummaryResponse;
+import com.ticket_booking.booking.responses.BookingResponses.SeatResponse;
+import com.ticket_booking.booking.responses.BookingResponses.VenueSummaryResponse;
 import com.ticket_booking.domain.models.Booking;
 
 public class BookingMapper {

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ticket_booking.booking.BookingService;
-import com.ticket_booking.booking.dtos.BookingDtos.BookingResponse;
+import com.ticket_booking.booking.responses.BookingResponses.BookingResponse;
 import com.ticket_booking.common.CursorPage;
 import com.ticket_booking.common.security.AppUser;
 import com.ticket_booking.user.commands.UserCommands.ChangePasswordCommand;

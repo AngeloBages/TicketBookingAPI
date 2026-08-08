@@ -1,4 +1,4 @@
-package com.ticket_booking.common.security.services;
+package com.ticket_booking.auth;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -7,16 +7,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ticket_booking.common.exceptions.EmailAlreadyInUseException;
+import com.ticket_booking.auth.responses.AuthenticationResponses.AuthResponse;
 import com.ticket_booking.common.security.AppUser;
-import com.ticket_booking.common.security.responses.AuthenticationResponses.AuthResponse;
 
-import static com.ticket_booking.common.security.services.commands.AuthenticationCommands.*;
+import static com.ticket_booking.auth.commands.AuthenticationCommands.*;
 
 import java.util.HashSet;
 
 import com.ticket_booking.domain.models.RefreshToken;
 import com.ticket_booking.domain.models.User;
+import com.ticket_booking.user.exceptions.EmailAlreadyInUseException;
 import com.ticket_booking.user.repositories.IUserRepository;
 
 

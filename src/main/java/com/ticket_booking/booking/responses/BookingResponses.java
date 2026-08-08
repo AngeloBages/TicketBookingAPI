@@ -1,4 +1,4 @@
-package com.ticket_booking.booking.dtos;
+package com.ticket_booking.booking.responses;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import com.ticket_booking.domain.models.enums.BookingStatus;
 
-public class BookingDtos {
+public class BookingResponses {
 	
 	public record BookingResponse(
 		    UUID bookingId,

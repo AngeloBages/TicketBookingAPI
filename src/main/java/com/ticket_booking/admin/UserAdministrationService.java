@@ -8,13 +8,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ticket_booking.admin.exceptions.LastAdminUserException;
 import com.ticket_booking.admin.responses.AdminResponses.UserInfoResponse;
 import com.ticket_booking.common.AppRole;
-import com.ticket_booking.common.exceptions.LastAdminUserException;
-import com.ticket_booking.common.exceptions.RoleNotFoundException;
-import com.ticket_booking.common.exceptions.UserNotFoundException;
 import com.ticket_booking.domain.models.Role;
 import com.ticket_booking.domain.models.User;
+import com.ticket_booking.user.exceptions.RoleNotFoundException;
+import com.ticket_booking.user.exceptions.UserNotFoundException;
 import com.ticket_booking.user.repositories.IRoleRepository;
 import com.ticket_booking.user.repositories.IUserRepository;
 

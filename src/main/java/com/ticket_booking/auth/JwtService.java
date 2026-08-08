@@ -1,4 +1,4 @@
-package com.ticket_booking.common.security.services;
+package com.ticket_booking.auth;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;

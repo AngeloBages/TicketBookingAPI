@@ -1,4 +1,4 @@
-package com.ticket_booking.common.security.requests;
+package com.ticket_booking.auth.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

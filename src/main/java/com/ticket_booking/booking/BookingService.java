@@ -10,8 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ticket_booking.booking.dtos.BookingDtos.BookingResponse;
 import com.ticket_booking.booking.repositories.IBookingRepository;
+import com.ticket_booking.booking.responses.BookingResponses.BookingResponse;
 import com.ticket_booking.booking.utils.BookingCursor;
 import com.ticket_booking.booking.utils.BookingMapper;
 import com.ticket_booking.booking.utils.BookingCursorDto;

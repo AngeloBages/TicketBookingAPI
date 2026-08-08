@@ -1,4 +1,4 @@
-package com.ticket_booking.common.security.repositories;
+package com.ticket_booking.auth.repositories;
 
 import java.util.Optional;
 

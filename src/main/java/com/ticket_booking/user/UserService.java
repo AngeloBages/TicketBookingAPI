@@ -6,15 +6,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ticket_booking.common.exceptions.EmailAlreadyInUseException;
-import com.ticket_booking.common.exceptions.InvalidCurrentPasswordException;
-import com.ticket_booking.common.exceptions.PasswordConfirmationException;
-import com.ticket_booking.common.exceptions.SamePasswordException;
-import com.ticket_booking.common.exceptions.UserNotFoundException;
-import com.ticket_booking.common.security.services.RefreshTokenService;
+import com.ticket_booking.auth.RefreshTokenService;
 import com.ticket_booking.domain.models.User;
 import com.ticket_booking.user.commands.UserCommands.ChangePasswordCommand;
 import com.ticket_booking.user.commands.UserCommands.UpdateUserCommand;
+import com.ticket_booking.user.exceptions.EmailAlreadyInUseException;
+import com.ticket_booking.user.exceptions.InvalidCurrentPasswordException;
+import com.ticket_booking.user.exceptions.PasswordConfirmationException;
+import com.ticket_booking.user.exceptions.SamePasswordException;
+import com.ticket_booking.user.exceptions.UserNotFoundException;
 import com.ticket_booking.user.repositories.IUserRepository;
 import com.ticket_booking.user.responses.UserResponses.UserInfoResponse;
 

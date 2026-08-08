@@ -1,4 +1,6 @@
-package com.ticket_booking.common.security;
+package com.ticket_booking.auth.controllers;
+
+import static com.ticket_booking.auth.requests.AuthenticationRequests.*;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -6,11 +8,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ticket_booking.common.security.responses.AuthenticationResponses.AuthResponse;
-import static com.ticket_booking.common.security.requests.AuthenticationRequests.*;
-import com.ticket_booking.common.security.services.AuthService;
-import com.ticket_booking.common.security.services.commands.AuthenticationCommands.AuthenticateUserCommand;
-import com.ticket_booking.common.security.services.commands.AuthenticationCommands.RegisterUserCommand;
+import com.ticket_booking.auth.AuthService;
+import com.ticket_booking.auth.commands.AuthenticationCommands.AuthenticateUserCommand;
+import com.ticket_booking.auth.commands.AuthenticationCommands.RegisterUserCommand;
+import com.ticket_booking.auth.responses.AuthenticationResponses.AuthResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
