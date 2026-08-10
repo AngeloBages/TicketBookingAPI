@@ -23,6 +23,8 @@ import com.ticket_booking.common.exceptions.DomainException;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import tools.jackson.databind.exc.InvalidFormatException;
 
 @RestControllerAdvice
@@ -67,6 +69,38 @@ public class GlobalExceptionHandler {
                 "Access Denied",
                 "You do not have permission to access this resource.",
                 request);
+    }
+    
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ProblemDetail> handleConstraintViolationException(
+            ConstraintViolationException ex,
+            HttpServletRequest request) {
+        
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed.");
+
+        problem.setTitle("Bad Request");
+        problem.setProperty("timestamp", OffsetDateTime.now());
+        problem.setProperty("path", request.getRequestURI());
+        
+        Map<String, String> errors = ex.getConstraintViolations()
+                .stream()
+                .collect(Collectors.toMap(
+                        violation -> {
+                            String propertyPath = violation.getPropertyPath().toString();
+                            int lastDot = propertyPath.lastIndexOf('.');
+                            return lastDot != -1 ? propertyPath.substring(lastDot + 1) : propertyPath;
+                        },
+                        ConstraintViolation::getMessage,
+                        (a, b) -> a
+                ));
+
+        problem.setProperty("invalid_fields", errors);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(problem);
     }
     
     @ExceptionHandler(HttpMessageNotReadableException.class)

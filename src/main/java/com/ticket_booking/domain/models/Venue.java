@@ -2,6 +2,9 @@ package com.ticket_booking.domain.models;
 
 import java.util.UUID;
 
+import com.ticket_booking.domain.models.valueobjects.VenueAddress;
+import com.ticket_booking.domain.models.valueobjects.VenueName;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -35,7 +38,34 @@ public class Venue {
             this.uuid = UUID.randomUUID();
         }
 	}
+	
 
+	protected Venue() {
+        // JPA
+    }
+	
+    private Venue(VenueName name, VenueAddress address) {
+        this.name = name.value();
+        this.address = address.value();
+    }
+	
+    public static Venue create(
+            String name,
+            String address
+    ) {
+        return new Venue(
+                new VenueName(name),
+                new VenueAddress(address)
+        );
+    }
+	
+    public void changeName(String name) {
+        this.name = new VenueName(name).value();
+    }
+
+    public void changeAddress(String address) {
+        this.address = new VenueAddress(address).value();
+    }
 	
 	public UUID getUuid() {
     	return this.uuid;

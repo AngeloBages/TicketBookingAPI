@@ -1,0 +1,22 @@
+package com.ticket_booking.venue.repositories;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.ticket_booking.domain.models.Venue;
+
+public interface IVenueRepository extends JpaRepository<Venue, Long> {
+
+	List<Venue> findByOrderByIdAsc(Pageable pageable);
+
+    List<Venue> findByIdGreaterThanOrderByIdAsc(
+            Long id,
+            Pageable pageable
+    );
+
+    Optional<Venue> findByUuid(UUID uuid);
+}
