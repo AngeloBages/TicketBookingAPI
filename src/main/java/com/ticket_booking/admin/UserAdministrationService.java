@@ -60,7 +60,7 @@ public class UserAdministrationService {
 		if (roleName == AppRole.ROLE_ADMIN &&
 			user.hasRole(role)) {
 			
-			long numberOfAdmins = userRepository.countUsersByRoleName(roleName.name());
+			long numberOfAdmins = userRepository.countByRolesName(roleName.name());
 
 			if(numberOfAdmins == 1)
 				throw new LastAdminUserException();
