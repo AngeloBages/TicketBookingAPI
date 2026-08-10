@@ -1,5 +1,6 @@
 package com.ticket_booking.admin;
 
+import java.util.Set;
 import java.util.UUID;
 
 import org.springdoc.core.annotations.ParameterObject;
@@ -25,7 +26,9 @@ import com.ticket_booking.common.AppRole;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 
 @RestController
 @RequestMapping("api/admin")
@@ -34,9 +37,14 @@ import jakarta.validation.Valid;
 public class AdminController {
 	
 	private final UserAdministrationService userAdminService;
+	private final Validator validator;
 	
-	public AdminController(UserAdministrationService userAdminService) {
+	public AdminController(
+			UserAdministrationService userAdminService,
+			Validator validator) {
+		
 		this.userAdminService = userAdminService;
+		this.validator = validator;
 	}
 
 	@GetMapping("users")
@@ -66,7 +74,8 @@ public class AdminController {
 	@Operation(summary = "Assign a role to a specif application user")
 	public ResponseEntity<Void> assignRole(
 			@PathVariable("id") UUID userId,
-			@Valid @RequestBody AssignRolesRequest request){
+			@RequestBody AssignRolesRequest request){
+		validateRequest(request);
 		
 		userAdminService.assignRoleToUser(userId, request.roleName());
 		
@@ -82,5 +91,12 @@ public class AdminController {
 		userAdminService.revokeRoleFromUser(userId, role);
 		
 		return ResponseEntity.noContent().build();
+	}
+	
+	private <T> void validateRequest(T request) {
+		Set<ConstraintViolation<T>> violations = validator.validate(request);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations); // Triggers  400 Bad Request handler
+        }
 	}
 }
