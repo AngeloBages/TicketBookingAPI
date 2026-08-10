@@ -5,15 +5,9 @@ public record VenueCursor(
 ) {
 	
 	public VenueCursor {
-		if (id <= 0) {
+		if (id == null || id <= 0) {
             throw new IllegalArgumentException(
-                    "venueId must be positive"
-            );
-        }
-		
-		if (id != 0) {
-            throw new IllegalArgumentException(
-                    "venueId must not be null"
+                    "VenueCursor must have a valid venueId"
             );
         }
 	}

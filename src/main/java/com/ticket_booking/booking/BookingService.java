@@ -12,9 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ticket_booking.booking.repositories.IBookingRepository;
 import com.ticket_booking.booking.responses.BookingResponses.BookingResponse;
-import com.ticket_booking.booking.utils.BookingCursor;
+import com.ticket_booking.booking.utils.BookingCursorParser;
 import com.ticket_booking.booking.utils.BookingMapper;
-import com.ticket_booking.booking.utils.BookingCursorDto;
+import com.ticket_booking.booking.utils.BookingCursor;
 import com.ticket_booking.common.CursorPage;
 import com.ticket_booking.domain.models.Booking;
 
@@ -35,14 +35,12 @@ public class BookingService {
         List<Booking> bookings;
 
         if (Strings.isBlank(cursor)) {
-
             bookings = bookingRepository.findFirstPage(
                     userId,
                     pageable);
 
         } else {
-
-            BookingCursorDto decoded = BookingCursor.decode(cursor);
+            BookingCursor decoded = BookingCursorParser.decode(cursor);
 
             bookings = bookingRepository.findNextPage(
                     userId,
@@ -52,19 +50,24 @@ public class BookingService {
         }
 
         boolean hasNext = bookings.size() > limit;
+        String nextCursor = null;
+        
+        List<Booking> page = bookings;
 
         if (hasNext) {
-            bookings.remove(limit);
-        }
-
-        String nextCursor = null;
-
-        if (hasNext && !bookings.isEmpty()) {
-            nextCursor = BookingCursor.encode(
-                    bookings.get(bookings.size() - 1));
+        	Booking lastBooking = bookings.get(bookings.size() - 1);
+        	
+        	BookingCursor bookingCursor = new BookingCursor(
+        				lastBooking.getBookingDate(),
+        				lastBooking.getId()
+        			);
+        	
+        	nextCursor = BookingCursorParser.encode(bookingCursor);
+        	
+            page = bookings.subList(0, limit);
         }
         
-        List<Long> ids = bookings.stream()
+        List<Long> ids = page.stream()
                 .map(booking -> booking.getId())
                 .toList();
 		
