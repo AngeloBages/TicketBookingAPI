@@ -63,10 +63,6 @@ public class User {
     
     @PrePersist
     public void onPrePersist() {
-        if (this.uuid == null) {
-            this.uuid = UUID.randomUUID();
-        }
-        
         this.createdAt = Instant.now();
         this.updatedAt = createdAt;
     }
