@@ -1,7 +1,7 @@
 package com.ticket_booking.domain.models;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -37,7 +37,7 @@ public class Booking {
     private UUID uuid;
 	
 	@Column(nullable = false)
-	private LocalDateTime bookingDate;
+	private Instant bookedAt;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
@@ -70,7 +70,7 @@ public class Booking {
             this.uuid = UUID.randomUUID();
         }
 		
-        this.bookingDate = LocalDateTime.now();
+        this.bookedAt = Instant.now();
     }
 	
 
@@ -82,12 +82,12 @@ public class Booking {
 		return this.status;
 	}
 	
-	public LocalDateTime getBookingDate() {
-		return bookingDate;
+	public Instant getBookedAt() {
+		return bookedAt;
 	}
 
-	public void setBookingDate(LocalDateTime bookingDate) {
-		this.bookingDate = bookingDate;
+	public void setBookedAt(Instant bookedAt) {
+		this.bookedAt = bookedAt;
 	}
 
 	public BigDecimal getTotalPrice() {

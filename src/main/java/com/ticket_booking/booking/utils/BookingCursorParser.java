@@ -1,7 +1,7 @@
 package com.ticket_booking.booking.utils;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Base64;
 
 import org.apache.logging.log4j.util.Strings;
@@ -18,7 +18,7 @@ public final class BookingCursorParser {
 
     public static String encode(BookingCursor bookingCursor) {
 
-        String value = bookingCursor.bookingDate()
+        String value = bookingCursor.bookingTimestamp()
                 + "|" + bookingCursor.id();
 
         return Base64.getUrlEncoder()
@@ -48,7 +48,7 @@ public final class BookingCursorParser {
             }
 
             return new BookingCursor(
-                    LocalDateTime.parse(parts[0]),
+                    Instant.parse(parts[0]),
                     Long.parseLong(parts[1])
             );
             

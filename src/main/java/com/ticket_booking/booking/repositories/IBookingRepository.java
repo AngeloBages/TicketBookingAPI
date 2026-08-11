@@ -1,6 +1,6 @@
 package com.ticket_booking.booking.repositories;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -16,7 +16,7 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
         SELECT b
         FROM Booking b
         WHERE b.user.id = :userId
-        ORDER BY b.bookingDate DESC, b.id DESC
+        ORDER BY b.bookedAt DESC, b.id DESC
     """)
     List<Booking> findFirstPage(
             @Param("userId") Long userId,
@@ -27,17 +27,17 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
         FROM Booking b
         WHERE b.user.id = :userId
         AND (
-            b.bookingDate < :bookingDate
+            b.bookedAt < :bookingDate
             OR (
-                b.bookingDate = :bookingDate
+                b.bookedAt = :bookingTimestamp
                 AND b.id < :id
             )
         )
-        ORDER BY b.bookingDate DESC, b.id DESC
+        ORDER BY b.bookedAt DESC, b.id DESC
     """)
     List<Booking> findNextPage(
             @Param("userId") Long userId,
-            @Param("bookingDate") LocalDateTime bookingDate,
+            @Param("bookingTimestamp") Instant bookingTimestamp,
             @Param("id") Long id,
             Pageable pageable);
 
@@ -48,7 +48,7 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
         JOIN FETCH e.venue
         LEFT JOIN FETCH b.seats
         WHERE b.id IN :ids
-        ORDER BY b.bookingDate DESC, b.id DESC
+        ORDER BY b.bookedAt DESC, b.id DESC
     """)
     List<Booking> fetchBookings(
             @Param("ids") List<Long> ids);

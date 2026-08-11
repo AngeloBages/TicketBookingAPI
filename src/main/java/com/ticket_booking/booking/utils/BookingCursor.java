@@ -1,9 +1,9 @@
 package com.ticket_booking.booking.utils;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record BookingCursor(
-	    LocalDateTime bookingDate,
+		Instant bookingTimestamp,
 	    Long id
 ) {
 	
@@ -15,9 +15,9 @@ public record BookingCursor(
             );
         }
 		
-		if (bookingDate == null) {
+		if (bookingTimestamp == null) {
             throw new IllegalArgumentException(
-                    "BookingCursor must have a valid bookingDate"
+                    "BookingCursor must have a valid bookingTimestamp"
             );
         }
 	}

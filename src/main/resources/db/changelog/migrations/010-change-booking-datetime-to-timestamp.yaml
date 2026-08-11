@@ -1,0 +1,20 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-change-booking-timestamp-to-timestamptz
+      author: angelo-b
+
+      changes:
+
+        - sql:
+            sql: |
+              ALTER TABLE booking
+              ALTER COLUMN booking_date
+              TYPE TIMESTAMP WITH TIME ZONE
+              USING booking_date AT TIME ZONE 'UTC';
+
+        - renameColumn:
+            tableName: booking
+            oldColumnName: booking_date
+            newColumnName: booked_at
+            columnDataType: TIMESTAMP WITH TIME ZONE

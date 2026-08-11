@@ -1,8 +1,8 @@
 package com.ticket_booking.booking.responses;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,7 +13,7 @@ public class BookingResponses {
 	public record BookingResponse(
 		    UUID bookingId,
 		    BookingStatus status,
-		    LocalDateTime bookingDate,
+		   Instant bookedAt,
 		    BigDecimal totalPrice,
 		    EventSummaryResponse event,
 		    VenueSummaryResponse venue,

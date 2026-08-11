@@ -44,7 +44,7 @@ public class BookingService {
 
             bookings = bookingRepository.findNextPage(
                     userId,
-                    decoded.bookingDate(),
+                    decoded.bookingTimestamp(),
                     decoded.id(),
                     pageable);
         }
@@ -58,7 +58,7 @@ public class BookingService {
         	Booking lastBooking = bookings.get(bookings.size() - 1);
         	
         	BookingCursor bookingCursor = new BookingCursor(
-        				lastBooking.getBookingDate(),
+        				lastBooking.getBookedAt(),
         				lastBooking.getId()
         			);
         	

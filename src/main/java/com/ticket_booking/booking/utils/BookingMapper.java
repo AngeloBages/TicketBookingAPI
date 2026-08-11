@@ -13,7 +13,7 @@ public class BookingMapper {
 	    return new BookingResponse(
 	            booking.getUuid(),
 	            booking.getStatus(),
-	            booking.getBookingDate(),
+	            booking.getBookedAt(),
 	            booking.getTotalPrice(),
 	            
 	            new EventSummaryResponse(
