@@ -33,7 +33,7 @@ public class UserAdministrationService {
 	}
 	
 	@Transactional(readOnly = true)
-	public Page<UserInfoResponse> getAllUsers(Pageable pageable) {
+	public Page<UserInfoResponse> getUsersInfo(Pageable pageable) {
 		
 		return userRepository.findAll(pageable)
 				.map(user -> toResponse(user));

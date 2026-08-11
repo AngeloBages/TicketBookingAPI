@@ -26,7 +26,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 @RestController
-@RequestMapping("api/users")
+@RequestMapping("/api/users")
 @Tag(name = "User", description = "User specifc endpoints")
 public class UserController {
 	
@@ -40,7 +40,7 @@ public class UserController {
 		this.bookingService = bookingService;
 	}
 
-	@GetMapping("me")
+	@GetMapping("/me")
 	@Operation(summary = "Get authenticated user's info")
 	public ResponseEntity<UserInfoResponse> getUserInfo(
 			@AuthenticationPrincipal(expression = "user.id") Long userId) {
@@ -52,7 +52,7 @@ public class UserController {
 				);
 	}
 	
-	@PutMapping("me")
+	@PutMapping("/me")
 	@Operation(summary = "Update authenticated user's info")
 	public ResponseEntity<Void> updateUserInfo(
 			@AuthenticationPrincipal(expression = "user.id") Long userId,
@@ -69,7 +69,7 @@ public class UserController {
 		return ResponseEntity.noContent().build();
 	}
 	
-	@PatchMapping("me/password")
+	@PatchMapping("/me/password")
 	@Operation(
 		    summary = "Change password",
 		    description = "Changes the authenticated user's password and revokes all active refresh tokens."
@@ -90,7 +90,7 @@ public class UserController {
 		return ResponseEntity.noContent().build();
 	}
 	
-	@DeleteMapping("me")
+	@DeleteMapping("/me")
 	@Operation(
 			summary = "Delete user",
 			description = "Deletes the authenticated user's account and revokes all active refresh tokens.")
@@ -102,7 +102,7 @@ public class UserController {
 		return ResponseEntity.noContent().build();
 	}
 	
-	@GetMapping("me/bookings")
+	@GetMapping("/me/bookings")
 	@Operation(summary = "Get authenticated user's bookings' details")
 	public ResponseEntity<CursorPage<BookingResponse>> getUserBookings(
 			@AuthenticationPrincipal(expression = "user.id") Long userId,

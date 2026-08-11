@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("api/auth")
+@RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "Private authentication endpoints")
 public class AuthController {
 	
@@ -27,7 +27,7 @@ public class AuthController {
 		this.authService = authService;
 	}
 	
-	@PostMapping("logout")
+	@PostMapping("/logout")
 	@Operation(
 			summary = "Logout user",
 			description = "Revokes the authenticated user's valid Refresh Token")

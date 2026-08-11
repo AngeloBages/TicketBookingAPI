@@ -31,7 +31,7 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 
 @RestController
-@RequestMapping("api/admin")
+@RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Admin", description = "Admin endpoints")
 public class AdminController {
@@ -47,9 +47,9 @@ public class AdminController {
 		this.validator = validator;
 	}
 
-	@GetMapping("users")
+	@GetMapping("/users")
 	@Operation(summary = "Get all application users' info")
-	public ResponseEntity<Page<UserInfoResponse>> getAllUsers(
+	public ResponseEntity<Page<UserInfoResponse>> getUsersInfo(
 			@ParameterObject
 			@PageableDefault(size = 15, sort = "createdAt", direction = Direction.ASC)
 			@SortDefault.SortDefaults({
@@ -59,10 +59,10 @@ public class AdminController {
 			Pageable pageable){
 		
 		return ResponseEntity.ok(
-				userAdminService.getAllUsers(pageable));
+				userAdminService.getUsersInfo(pageable));
 	}
 	
-	@GetMapping("users/{id}")
+	@GetMapping("/users/{id}")
 	@Operation(summary = "Get a specif application user's info")
 	public ResponseEntity<UserInfoResponse> getUserInfo(@PathVariable("id") UUID userId){
 
@@ -70,7 +70,7 @@ public class AdminController {
 				userAdminService.getUserInfo(userId));
 	}
 	
-	@PostMapping("users/{id}/roles")
+	@PostMapping("/users/{id}/roles")
 	@Operation(summary = "Assign a role to a specif application user")
 	public ResponseEntity<Void> assignRole(
 			@PathVariable("id") UUID userId,
@@ -82,7 +82,7 @@ public class AdminController {
 		return ResponseEntity.noContent().build();
 	}
 	
-	@DeleteMapping("users/{id}/roles/{role}")
+	@DeleteMapping("/users/{id}/roles/{role}")
 	@Operation(summary = "Revoke a specif user's role")
 	public ResponseEntity<Void> revokeRole(
 			@PathVariable("id") UUID userId,

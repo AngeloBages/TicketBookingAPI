@@ -32,7 +32,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 @RestController
-@RequestMapping("api/venues")
+@RequestMapping("/api/venues")
 @Tag(name = "Venue", description = "Venue endpoints")
 public class VenueController {
 
@@ -54,15 +54,22 @@ public class VenueController {
 			@RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit) {
 
 		return ResponseEntity.ok(
-				venueService.getVenues(cursor, limit));
+				venueService.getVenues(
+						cursor, 
+						limit
+					)
+				);
 	}
 	
-	@GetMapping("{id}")
+	@GetMapping("/{id}")
 	@Operation(summary = "Get info of a specific venue")
 	public ResponseEntity<VenueResponse> getVenue(@PathVariable("id") UUID venueId) {
 		
 		return ResponseEntity.ok(
-				venueService.getVenue(venueId));
+				venueService.getVenue(
+						venueId
+					)
+				);
 	}
 	
 	@PostMapping
@@ -87,7 +94,7 @@ public class VenueController {
 		return ResponseEntity.created(location).build();
 	}
 	
-	@PutMapping("{id}")
+	@PutMapping("/{id}")
 	@Operation(summary = "Update a Venue")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> updateVenue(
@@ -106,7 +113,7 @@ public class VenueController {
 		return ResponseEntity.noContent().build();
 	}
 	
-	@DeleteMapping("{id}")
+	@DeleteMapping("/{id}")
 	@Operation(summary = "Delete a Venue")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> deleteVenue(@PathVariable("id") UUID venueId) {

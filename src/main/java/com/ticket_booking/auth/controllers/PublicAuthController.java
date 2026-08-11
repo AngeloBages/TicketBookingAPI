@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("api/public/auth")
+@RequestMapping("/api/public/auth")
 @Tag(name = "Public Authentication", description = "Public authentication endpoints")
 public class PublicAuthController {
 
@@ -30,7 +30,7 @@ public class PublicAuthController {
 		this.authService = authService;
 	}
 	
-	@PostMapping("register")
+	@PostMapping("/register")
 	@Operation(
 			summary = "Register a new user",
 			description = "Creates a new account and returns JWT and Refresh Token.")
@@ -47,7 +47,7 @@ public class PublicAuthController {
 			);
 	}
 	
-	@PostMapping("login")
+	@PostMapping("/login")
 	@Operation(
 			summary = "Authenticate user",
 			description = "Authenticates a user using email/password.")
@@ -63,7 +63,7 @@ public class PublicAuthController {
 			);
 	}
 	
-	@PostMapping("refresh")
+	@PostMapping("/refresh")
 	@Operation(
 			summary = "Refresh JWT",
 			description = "Uses a valid Refresh Token to obtain a new Access Token.")
