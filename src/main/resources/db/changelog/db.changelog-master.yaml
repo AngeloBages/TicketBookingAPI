@@ -16,3 +16,9 @@ databaseChangeLog:
 
   - include:
       file: classpath:db/changelog/migrations/006-insert-admin-role.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/007-user-change-timestamps-to-timestamptz.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/008-change-refresh-token-user-fk-to-cascade.yaml

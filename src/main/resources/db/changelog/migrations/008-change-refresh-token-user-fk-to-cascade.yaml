@@ -1,0 +1,19 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-change-refresh-token-user-fk-to-cascade
+      author: angelo-b
+
+      changes:
+
+        - dropForeignKeyConstraint:
+            baseTableName: refresh_tokens
+            constraintName: fk_refresh_token_user
+
+        - addForeignKeyConstraint:
+            constraintName: fk_refresh_token_user
+            baseTableName: refresh_tokens
+            baseColumnNames: user_id
+            referencedTableName: app_user
+            referencedColumnNames: id
+            onDelete: CASCADE

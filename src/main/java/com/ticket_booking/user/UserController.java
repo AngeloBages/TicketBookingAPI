@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ticket_booking.booking.BookingService;
 import com.ticket_booking.booking.responses.BookingResponses.BookingResponse;
 import com.ticket_booking.common.CursorPage;
-import com.ticket_booking.common.security.AppUser;
 import com.ticket_booking.user.commands.UserCommands.ChangePasswordCommand;
 import com.ticket_booking.user.commands.UserCommands.UpdateUserCommand;
 import com.ticket_booking.user.responses.UserResponses.UserInfoResponse;
@@ -43,23 +42,29 @@ public class UserController {
 
 	@GetMapping("me")
 	@Operation(summary = "Get authenticated user's info")
-	public ResponseEntity<UserInfoResponse> getUserInfo(@AuthenticationPrincipal AppUser appUser) {
+	public ResponseEntity<UserInfoResponse> getUserInfo(
+			@AuthenticationPrincipal(expression = "user.id") Long userId) {
 		
 		return ResponseEntity.ok(
-				userService.getCurrentUser(appUser.getUser().getId()));
+				userService.getCurrentUser(
+						userId
+					)
+				);
 	}
 	
 	@PutMapping("me")
 	@Operation(summary = "Update authenticated user's info")
 	public ResponseEntity<Void> updateUserInfo(
-			@AuthenticationPrincipal AppUser appUser,
+			@AuthenticationPrincipal(expression = "user.id") Long userId,
 			@Valid @RequestBody UpdateUserRequest request) {
 		
-		userService.updateUserInfo(new UpdateUserCommand(
-				appUser.getUser().getId(),
-				request.name(),
-				request.email()
-		));
+		userService.updateUserInfo(
+				new UpdateUserCommand(
+					userId,
+					request.name(),
+					request.email()
+				)
+			);
 		
 		return ResponseEntity.noContent().build();
 	}
@@ -70,15 +75,17 @@ public class UserController {
 		    description = "Changes the authenticated user's password and revokes all active refresh tokens."
 		)
 	public ResponseEntity<Void> changePassword(
-			@AuthenticationPrincipal AppUser appUser,
+			@AuthenticationPrincipal(expression = "user.id") Long userId,
 			@Valid @RequestBody ChangePasswordRequest request) {
 		
-		userService.changePassword(new ChangePasswordCommand(
-				appUser.getUser().getId(),
-		        request.currentPassword(),
-		        request.newPassword(),
-		        request.confirmPassword()
-		));
+		userService.changePassword(
+				new ChangePasswordCommand(
+					userId,
+			        request.currentPassword(),
+			        request.newPassword(),
+			        request.confirmPassword()
+				)
+			);
 		
 		return ResponseEntity.noContent().build();
 	}
@@ -87,9 +94,10 @@ public class UserController {
 	@Operation(
 			summary = "Delete user",
 			description = "Deletes the authenticated user's account and revokes all active refresh tokens.")
-	public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal AppUser appUser) {
+	public ResponseEntity<Void> deleteUser(
+			@AuthenticationPrincipal(expression = "user.id") Long userId) {
 
-		userService.deleteUser(appUser.getUser().getId());
+		userService.deleteUser(userId);
 		
 		return ResponseEntity.noContent().build();
 	}
@@ -97,14 +105,16 @@ public class UserController {
 	@GetMapping("me/bookings")
 	@Operation(summary = "Get authenticated user's bookings' details")
 	public ResponseEntity<CursorPage<BookingResponse>> getUserBookings(
-			@AuthenticationPrincipal AppUser appUser,
+			@AuthenticationPrincipal(expression = "user.id") Long userId,
 			@RequestParam(required = false) String cursor,
 			@RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit) {
 		
 		return ResponseEntity.ok(
 				bookingService.getUserBookings(
-						appUser.getUser().getId(),
+						userId,
 						cursor,
-						limit));
+						limit
+					)
+				);
 	}
 }

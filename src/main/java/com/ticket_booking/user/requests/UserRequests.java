@@ -8,7 +8,7 @@ public class UserRequests {
 	
 	public record UpdateUserRequest(
 		    @NotBlank
-		    @Size(min = 3, max = 120)
+		    @Size(min = 3, max = 100)
 		    String name,
 
 		    @NotBlank

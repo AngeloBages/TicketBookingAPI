@@ -1,0 +1,21 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-change-user-timestamps-to-timestamptz
+      author: angelo-b
+
+      changes:
+
+        - sql:
+            sql: |
+              ALTER TABLE app_user
+              ALTER COLUMN created_at
+              TYPE TIMESTAMP WITH TIME ZONE
+              USING created_at AT TIME ZONE 'UTC';
+
+        - sql:
+            sql: |
+              ALTER TABLE app_user
+              ALTER COLUMN updated_at
+              TYPE TIMESTAMP WITH TIME ZONE
+              USING updated_at AT TIME ZONE 'UTC';

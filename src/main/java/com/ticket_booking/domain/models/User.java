@@ -1,12 +1,15 @@
 package com.ticket_booking.domain.models;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+
+import com.ticket_booking.domain.models.valueobjects.EmailAddress;
+import com.ticket_booking.domain.models.valueobjects.UserName;
+import com.ticket_booking.user.exceptions.InvalidUserFieldException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,10 +47,10 @@ public class User {
     private String password;
     
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -64,89 +67,98 @@ public class User {
             this.uuid = UUID.randomUUID();
         }
         
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = Instant.now();
         this.updatedAt = createdAt;
     }
     
     @PreUpdate
     public void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = Instant.now();
     }
     
     
-    protected User() {}
+    protected User() { 
+    	// JPA 
+    } 
+    
+    private User(
+    		UserName name, 
+    		EmailAddress email, 
+    		String encodedPassword, 
+    		Set<Role> roles) {
+    	
+    	this.uuid = UUID.randomUUID(); 
+    	
+    	this.name = name.value(); 
+    	this.email = email.value(); 
+    	this.password = requireEncodedPassword(encodedPassword); 
+    	
+    	this.assignRoles(roles);
+    } 
     
     public static User create(
-            String name,
-            String email,
-            String encodedPassword,
-            Set<Role> roles) {
-
-        User user = new User();
-
-        user.name = user.normalizeName(name);
-        user.email = user.normalizeEmail(email);
-        user.password = encodedPassword;
-        user.roles.addAll(roles);
-
-        return user;
+    		String name, 
+    		String email, 
+    		String encodedPassword, 
+    		Set<Role> roles ) { 
+    	
+    	return new User(
+    			new UserName(name), 
+    			new EmailAddress(email), 
+    			encodedPassword, 
+    			roles 
+    		);
+    } 
+    
+    public void changeName(String name) { 
+    	this.name = new UserName(name).value(); 
+    } 
+    
+    public void changeEmail(String email) { 
+    	this.email = new EmailAddress(email).value(); 
     }
     
     public boolean hasEmail(String email) {
 
-        return this.email.equalsIgnoreCase(email);
-    }
-    
-    public void changeName(String name) {
-
-        String normalized = normalizeName(name);
-
-        if (normalized.equals(this.name)) {
-            return;
-        }
-
-        this.name = normalized;
-    }
-
-    public void changeEmail(String email) {
-
-        String normalized = normalizeEmail(email);
-
-        if (normalized.equals(this.email)) {
-            return;
-        }
-
-        this.email = normalized;
+    	return this.email.equals(
+    			new EmailAddress(email).value()
+    	);
     }
 
     public void changePassword(String encodedPassword) {
 
-        this.password = Objects.requireNonNull(encodedPassword);
+        this.password = requireEncodedPassword(encodedPassword);
     }
     
     public void assignRole(Role role) {
-        roles.add(role);
+    	this.roles.add(role);
+    }
+    
+    public void assignRoles(Collection<Role> roles) {
+        this.roles.addAll(roles);
     }
 
     public void revokeRole(Role role) {
-        roles.remove(role);
+    	if (role == null) { 
+    		return; 
+    	} 
+    	
+    	this.roles.remove(role);
     }
     
     public boolean hasRole(Role role) {
-    	return this.roles.contains(role);
+    	return role != null && this.roles.contains(role);
     }
     
-    private String normalizeName(String name) {
-
-        return name.trim()
-                .replaceAll("\\s+", " ");
-    }
-    
-    private String normalizeEmail(String email) {
-
-        return email.trim()
-                .toLowerCase(Locale.ROOT);
-    }
+	private static String requireEncodedPassword(String encodedPassword) {
+		if (encodedPassword == null || encodedPassword.isBlank()) {
+			throw new InvalidUserFieldException(
+					"password", 
+					"encoded password must not be blank"
+				);
+		}
+		return encodedPassword;
+	}
 
     public Long getId() { return id; }
     public UUID getUuid() { return uuid; }
