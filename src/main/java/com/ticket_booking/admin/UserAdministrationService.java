@@ -32,12 +32,14 @@ public class UserAdministrationService {
 		this.roleRepository = roleRepository;
 	}
 	
+	@Transactional(readOnly = true)
 	public Page<UserInfoResponse> getAllUsers(Pageable pageable) {
 		
 		return userRepository.findAll(pageable)
 				.map(user -> toResponse(user));
 	}
-	
+
+	@Transactional(readOnly = true)
 	public UserInfoResponse getUserInfo(UUID userId) {
 		
 		User user = getUser(userId);
