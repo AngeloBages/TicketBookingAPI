@@ -38,7 +38,7 @@ public class RefreshTokenService {
 				.orElseThrow(() -> new RefreshTokenNotFoundException(token));
 				
         verifyExpiration(refreshToken);
-        refreshToken.setRevoked(true);
+        refreshToken.revoke();
         
         try {
             return createRefreshToken(refreshToken.getUser());
@@ -56,7 +56,7 @@ public class RefreshTokenService {
     	
         Instant expiry = Instant.now().plusMillis(securityProperties.refreshTokenExpiration());
 
-        RefreshToken refreshToken = new RefreshToken(token, user, expiry);
+        RefreshToken refreshToken = RefreshToken.create(token, user, expiry);
         return refreshTokenRepository.save(refreshToken);
     }
 
@@ -83,7 +83,7 @@ public class RefreshTokenService {
             throw new RefreshTokenReplayException("Replay attack detected for refresh token.");
         }
 
-        if (token.getExpiryDate().isBefore(Instant.now())) {
+        if (token.isExpired(Instant.now())) {
         	refreshTokenRepository.delete(token);
             throw new RefreshTokenExpiredException();
         }

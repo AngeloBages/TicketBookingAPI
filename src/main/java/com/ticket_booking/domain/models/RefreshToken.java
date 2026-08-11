@@ -1,6 +1,7 @@
 package com.ticket_booking.domain.models;
 
 import java.time.Instant;
+import java.util.Objects;
 
 import jakarta.persistence.Version;
 
@@ -28,7 +29,7 @@ public class RefreshToken {
     private String token;
 
     @Column(nullable = false)
-    private Instant expiryDate;
+    private Instant expiresAt;
 
     @Column(nullable = false)
     private boolean revoked = false;
@@ -43,23 +44,47 @@ public class RefreshToken {
 
     
     protected RefreshToken() {}
-
-    public RefreshToken(String token, User user, Instant expiryDate) {
-        this.token = token;
-        this.user = user;
-        this.expiryDate = expiryDate;
+    
+    private RefreshToken(
+            String token,
+            User user,
+            Instant expiresAt) {
+    	
+        this.token = Objects.requireNonNull(token);
+        this.user = Objects.requireNonNull(user);
+        this.expiresAt = Objects.requireNonNull(expiresAt);
         this.revoked = false;
     }
 
+    public static RefreshToken create(
+    		String token, 
+    		User user, 
+    		Instant expiresAt) {
+    	
+        return new RefreshToken(
+        		token,
+        		user,
+        		expiresAt
+        	);
+    }
+    
+	public void revoke() {
+		this.revoked = true;
+	}
+	
+	public boolean isExpired(Instant now) {
+		Objects.requireNonNull(now, "now must not be null");
+		return !this.expiresAt.isAfter(now);
+	}
+	
+	public boolean isUsable(Instant now) {
+		return !revoked && !isExpired(now);
+	}
 
-    public Long getId() { return id; }
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-    public Instant getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(Instant expiryDate) { this.expiryDate = expiryDate; }
+    public Long getId() { return this.id; }
+    public String getToken() { return this.token; }
+    public User getUser() { return this.user; }
+    public Instant getExpiresAt() { return this.expiresAt; }
     public boolean isRevoked() { return revoked; }
-    public void setRevoked(boolean revoked) { this.revoked = revoked; }
     public Long getVersion() { return this.version; }
 }

@@ -1,0 +1,13 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-rename-refresh-token-expiry-column
+      author: angelo-b
+
+      changes:
+
+        - renameColumn:
+            tableName: refresh_tokens
+            oldColumnName: expiry_date
+            newColumnName: expires_at
+            columnDataType: TIMESTAMP WITH TIME ZONE

@@ -22,7 +22,7 @@ public class Role {
 	@Column(nullable = false, unique = true)
 	private String name;
 	
-	public Role() {}
+	protected Role() {}
 	
 	public Role(String name) {
         this.name = name;

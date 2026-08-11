@@ -22,3 +22,6 @@ databaseChangeLog:
 
   - include:
       file: classpath:db/changelog/migrations/008-change-refresh-token-user-fk-to-cascade.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/009-rename-refresh-token-expiry-column.yaml
