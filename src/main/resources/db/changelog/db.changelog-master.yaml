@@ -28,3 +28,9 @@ databaseChangeLog:
 
   - include:
       file: classpath:db/changelog/migrations/010-change-booking-datetime-to-timestamp.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/011-seat-add-uuid-and-remove-status.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/012-add-venue-and-seat-active-flag.yaml

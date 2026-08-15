@@ -1,0 +1,77 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 001-seat-add-uuid
+      author: angelo-b
+      changes:
+
+        - addColumn:
+            tableName: seat
+            columns:
+              - column:
+                  name: uuid
+                  type: UUID
+
+        - sql:
+            sql: |
+              UPDATE seat
+              SET uuid = gen_random_uuid()
+              WHERE uuid IS NULL;
+
+        - addNotNullConstraint:
+            tableName: seat
+            columnName: uuid
+            columnDataType: UUID
+
+        - addUniqueConstraint:
+            tableName: seat
+            columnNames: uuid
+            constraintName: uk_seat_uuid
+
+      rollback:
+        - dropUniqueConstraint:
+            tableName: seat
+            constraintName: uk_seat_uuid
+
+        - dropColumn:
+            tableName: seat
+            columnName: uuid
+
+
+  - changeSet:
+      id: 002-seat-row-change-length
+      author: angelo-b
+      changes:
+
+        - modifyDataType:       
+            tableName: seat 
+            columnName: seat_row
+            newDataType: VARCHAR(10)
+
+      rollback:
+        - modifyDataType:       
+            tableName: seat 
+            columnName: seat_row
+            newDataType: VARCHAR(20)
+
+
+  - changeSet:
+      id: 004-seat-remove-status
+      author: angelo-b
+      changes:
+
+        - dropColumn:
+            tableName: seat
+            columnName: status
+
+      rollback:
+        - addColumn:
+            tableName: seat
+            columns:
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  defaultValue: AVAILABLE
+                  constraints:
+                    nullable: false
+
