@@ -1,11 +1,11 @@
 package com.ticket_booking.venue.utils;
 
 public record VenueCursor(
-		Long id
+		long venueId
 ) {
 	
 	public VenueCursor {
-		if (id == null || id <= 0) {
+		if (venueId <= 0) {
             throw new IllegalArgumentException(
                     "VenueCursor must have a valid venueId"
             );

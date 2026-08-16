@@ -15,8 +15,10 @@ import static com.ticket_booking.venue.commands.VenueCommands.*;
 import com.ticket_booking.venue.exceptions.VenueNotFoundException;
 import com.ticket_booking.venue.repositories.IVenueRepository;
 import com.ticket_booking.venue.responses.VenueResponses.VenueResponse;
+import com.ticket_booking.venue.responses.VenueResponses.VenueSummaryResponse;
 import com.ticket_booking.venue.utils.VenueCursor;
 import com.ticket_booking.venue.utils.VenueCursorParser;
+import com.ticket_booking.venue.utils.VenueMapper;
 
 @Service
 public class VenueService {
@@ -28,53 +30,49 @@ public class VenueService {
 	}
 	
 	@Transactional(readOnly = true)
-	public CursorPage<VenueResponse> getVenues(String cursor, int limit) {
+	public CursorPage<VenueSummaryResponse> getVenues(String cursor, int limit) {
 		
 		Pageable pageable = PageRequest.of(0, limit + 1);
 		
-		List<Venue> venues;
+		List<Venue> venues = Strings.isBlank(cursor)
+		    		? venueRepository.findByOrderByIdAsc(pageable)
+		    		: findNextPage(cursor, pageable);
 		
-		if(Strings.isBlank(cursor)) {
-			venues = venueRepository.findByOrderByIdAsc(pageable);
-			
-		} else {
-			VenueCursor decoded = VenueCursorParser.decode(cursor);
-			venues = venueRepository.findByIdGreaterThanOrderByIdAsc(decoded.id(), pageable);
-		}
+		if(venues.isEmpty()) {
+        	return new CursorPage<>(
+        			List.of(),
+        			null,
+        			false
+        	);
+        }
 		
 		boolean hasNext = venues.size() > limit;
-		String nextCursor = null;
 		
-		List<Venue> page = venues;
+		List<Venue> page = hasNext 
+				? venues.subList(0, limit)
+				: venues;
+
+		String nextCursor = hasNext
+				? createCursor(page.getLast())
+				: null;
 		
-		if(hasNext) {
-			Venue lastVenue = venues.get(limit - 1);
-			
-			VenueCursor venueCursor = new VenueCursor(
-					lastVenue.getId()
-				);
-			
-			nextCursor =  VenueCursorParser.encode(venueCursor);
-			
-			page = venues.subList(0, limit);
-		}
-		
-		List<VenueResponse> responses = page.stream()
-			.map(venue -> toResponse(venue))
+		List<VenueSummaryResponse> responses = page.stream()
+			.map(venue -> VenueMapper.toSummaryResponse(venue))
 			.toList();
 		
 		return new CursorPage<>(
 					responses,
 					nextCursor,
 					hasNext
-				);
+		);
 	}
 	
 	@Transactional(readOnly = true)
 	public VenueResponse getVenue(UUID venueId) {
-		Venue venue = findVenue(venueId);
+		Venue venue = venueRepository.findByUuidFetchSeats(venueId)
+				.orElseThrow(() -> new VenueNotFoundException());
 		
-		return toResponse(venue);
+		return VenueMapper.toResponse(venue);
 	}
 	
 	@Transactional
@@ -83,6 +81,13 @@ public class VenueService {
 		Venue venue = Venue.create(
 				command.name(),
 				command.address());
+		
+		for(SeatDto seat : command.seats()) {
+			venue.addSeat(
+					seat.number(),
+					seat.row()
+				);
+		}
 		
 		venueRepository.save(venue);
 		
@@ -98,10 +103,9 @@ public class VenueService {
 	}
 	
 	@Transactional
-	public void deleteVenue(UUID venueId) {
+	public void deactivateVenue(UUID venueId) {
 		Venue venue = findVenue(venueId);
-		
-		venueRepository.delete(venue);
+		venue.deactivate();
 	}
 	
 	private Venue findVenue(UUID venueId) {
@@ -109,11 +113,20 @@ public class VenueService {
 				.orElseThrow(() -> new VenueNotFoundException());
 	}
 	
-	private VenueResponse toResponse(Venue venue) {
-		return new VenueResponse(
-				venue.getUuid(),
-				venue.getName(),
-				venue.getAddress()
-				);
+	private List<Venue> findNextPage(String cursor, Pageable pageable) {
+		VenueCursor decoded = VenueCursorParser.decode(cursor);
+
+		return venueRepository.findByIdGreaterThanOrderByIdAsc(
+				decoded.venueId(), 
+				pageable
+			);
+	}
+	
+	private String createCursor(Venue venue) {
+		VenueCursor venueCursor = new VenueCursor(
+				venue.getId()
+			);
+		
+		return VenueCursorParser.encode(venueCursor);
 	}
 }

@@ -1,7 +1,6 @@
 package com.ticket_booking.venue;
 
 import java.net.URI;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -19,15 +18,15 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.ticket_booking.common.CursorPage;
 import com.ticket_booking.venue.commands.VenueCommands.CreateVenueCommand;
+import com.ticket_booking.venue.commands.VenueCommands.SeatDto;
 import com.ticket_booking.venue.commands.VenueCommands.UpdateVenueCommand;
-import static com.ticket_booking.venue.requests.VenuesRequests.*;
+import static com.ticket_booking.venue.requests.VenueRequests.*;
 import com.ticket_booking.venue.responses.VenueResponses.VenueResponse;
+import com.ticket_booking.venue.responses.VenueResponses.VenueSummaryResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Validator;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
@@ -37,19 +36,16 @@ import jakarta.validation.constraints.Min;
 public class VenueController {
 
 	private final VenueService venueService;
-	private final Validator validator;
 	
 	public VenueController(
-			VenueService venueService,
-			Validator validator) {
+			VenueService venueService) {
 		
 		this.venueService = venueService;
-		this.validator = validator;
 	}
 	
 	@GetMapping
 	@Operation(summary = "Get venues' info")
-	public ResponseEntity<CursorPage<VenueResponse>> getVenues(
+	public ResponseEntity<CursorPage<VenueSummaryResponse>> getVenues(
 			@RequestParam(required = false) String cursor,
 			@RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit) {
 
@@ -75,13 +71,20 @@ public class VenueController {
 	@PostMapping
 	@Operation(summary = "Register a new Venue")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Void> registerVenue(@RequestBody RegisterVenueRequest request) {
-		validateRequest(request);
+	public ResponseEntity<Void> registerVenue(
+			@Valid @RequestBody VenueCreateRequest request) {
 		
 		UUID venueId = venueService.createVenue(
 				new CreateVenueCommand(
 						request.name(),
-						request.address()
+						request.address(),
+						request.seats()
+						    .stream()
+							.map(seat -> new SeatDto(
+										seat.number(),
+										seat.row()
+									))
+							.toList()
 				)
 			);
 		
@@ -99,8 +102,7 @@ public class VenueController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> updateVenue(
 			@PathVariable("id") UUID venueId, 
-			@RequestBody UpdateVenueRequest request) {
-		validateRequest(request);
+			@Valid @RequestBody VenueUpdateRequest request) {
 		
 		venueService.updateVenue(
 				new UpdateVenueCommand(
@@ -114,19 +116,12 @@ public class VenueController {
 	}
 	
 	@DeleteMapping("/{id}")
-	@Operation(summary = "Delete a Venue")
+	@Operation(summary = "Deactivate a Venue")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Void> deleteVenue(@PathVariable("id") UUID venueId) {
+	public ResponseEntity<Void> deactivateVenue(@PathVariable("id") UUID venueId) {
 		
-		venueService.deleteVenue(venueId);
+		venueService.deactivateVenue(venueId);
 		
 		return ResponseEntity.noContent().build();
-	}
-	
-	private <T> void validateRequest(T request) {
-		Set<ConstraintViolation<T>> violations = validator.validate(request);
-        if (!violations.isEmpty()) {
-            throw new ConstraintViolationException(violations); // Triggers  400 Bad Request handler
-        }
 	}
 }

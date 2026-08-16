@@ -17,7 +17,7 @@ public final class VenueCursorParser {
 
     public static String encode(VenueCursor venueCursor) {
 
-        String value = venueCursor.id().toString();
+        String value = Long.toString(venueCursor.venueId());
 
         return Base64.getUrlEncoder()
                 .withoutPadding()
