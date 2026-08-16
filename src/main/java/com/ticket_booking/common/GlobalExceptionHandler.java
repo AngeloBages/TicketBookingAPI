@@ -18,6 +18,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import com.ticket_booking.common.exceptions.DomainException;
 
@@ -136,7 +137,9 @@ public class GlobalExceptionHandler {
                 request);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler({
+    	MethodArgumentNotValidException.class,
+    	HandlerMethodValidationException.class})
     public ResponseEntity<ProblemDetail> handleInvalidMethodArgumentException(
     		MethodArgumentNotValidException ex,
             HttpServletRequest request) {
