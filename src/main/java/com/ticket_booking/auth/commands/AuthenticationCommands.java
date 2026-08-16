@@ -1,8 +1,17 @@
 package com.ticket_booking.auth.commands;
 
-public class AuthenticationCommands {
-
-	public record AuthenticateUserCommand(String email, String password) {};
+public final class AuthenticationCommands {
 	
-	public record RegisterUserCommand(String email, String password, String name) {};
+	private AuthenticationCommands() {}
+
+	public record AuthenticateUserCommand(
+			String email, 
+			String password
+	) {};
+	
+	public record RegisterUserCommand(
+			String email, 
+			String password, 
+			String name
+	) {};
 }

@@ -3,7 +3,9 @@ package com.ticket_booking.auth.requests;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public class AuthenticationRequests {
+public final class AuthenticationRequests {
+	
+	private AuthenticationRequests() {}
 	
 	public record RegisterUserRequest(
 		@NotBlank String name,
@@ -25,10 +27,10 @@ public class AuthenticationRequests {
 	) {}
 
 	public record RefreshTokenRequest(
-		@NotBlank(message = "Refresh token cannot be blannk") String refreshToken
+		@NotBlank(message = "Refresh token cannot be blank") String refreshToken
 	) {}
 
 	public record LogoutRequest(
-		@NotBlank(message = "Refresh token cannot be blannk") String refreshToken
+		@NotBlank(message = "Refresh token cannot be blank") String refreshToken
 	) { }
 }

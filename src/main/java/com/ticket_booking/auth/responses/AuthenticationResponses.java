@@ -1,7 +1,9 @@
 package com.ticket_booking.auth.responses;
 
-public class AuthenticationResponses {
+public final class AuthenticationResponses {
 
+	private AuthenticationResponses() {}
+	
 	public record AuthResponse(
 			String accessToken,
 			String refreshToken

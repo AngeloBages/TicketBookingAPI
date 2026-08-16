@@ -1,6 +1,8 @@
 package com.ticket_booking.user.commands;
 
-public class UserCommands {
+public final class UserCommands {
+	
+	private UserCommands() {}
 	
 	public record UpdateUserCommand(
 		Long id,

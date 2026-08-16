@@ -3,8 +3,10 @@ package com.ticket_booking.admin.responses;
 import java.util.Set;
 import java.util.UUID;
 
-public class AdminResponses {
+public final class AdminResponses {
 
+	private AdminResponses() {}
+	
 	public record UserInfoResponse(
 			UUID uuid,
 			String name,
