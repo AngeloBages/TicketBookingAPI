@@ -1,0 +1,102 @@
+databaseChangeLog:
+
+  # ============================================================
+  # EVENT_SEAT SEQUENCE
+  # ============================================================
+
+  - changeSet:
+      id: 01-create-event-seat-sequence
+      author: angelo-b
+      changes:
+
+        - createSequence:
+            sequenceName: event_seat_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+      rollback:
+        - dropSequence:
+            sequenceName: event_seat_seq_generator
+
+
+  # ============================================================
+  # EVENT_SEAT
+  # ============================================================
+
+  - changeSet:
+      id: 02-create-event-seat
+      author: angelo-b
+      changes:
+
+        - createTable:
+            tableName: event_seat
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+
+              - column:
+                  name: uuid
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: event_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: seat_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  defaultValue: AVAILABLE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            constraintName: fk_event_seat_event
+            baseTableName: event_seat
+            baseColumnNames: event_id
+            referencedTableName: event
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_event_seat_seat
+            baseTableName: event_seat
+            baseColumnNames: seat_id
+            referencedTableName: seat
+            referencedColumnNames: id
+
+        - addUniqueConstraint:
+            tableName: event_seat
+            columnNames: event_id, seat_id
+            constraintName: uk_event_seat
+
+      rollback:
+        - dropTable:
+            tableName: event_seat

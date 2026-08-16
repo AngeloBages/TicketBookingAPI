@@ -1,0 +1,16 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-add-event-status
+      author: angelo-b
+      changes:
+
+        - addColumn:
+            tableName: event
+            columns:
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: DRAFT
+                  constraints:
+                    nullable: false
