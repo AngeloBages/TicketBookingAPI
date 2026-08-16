@@ -8,10 +8,10 @@ public class LastAdminUserException extends DomainException {
 
 	private static final long serialVersionUID = 5569182640799010245L;
 
-	public LastAdminUserException() {
+	public LastAdminUserException(String reason) {
 		super(
 			HttpStatus.BAD_REQUEST,
 			"Last Administrator User",
-			"Last Administrator can't have their ADMIN role revoked");
+			reason);
 	}
 }

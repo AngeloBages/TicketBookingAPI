@@ -6,7 +6,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ticket_booking.admin.exceptions.LastAdminUserException;
 import com.ticket_booking.auth.RefreshTokenService;
+import com.ticket_booking.common.AppRole;
+import com.ticket_booking.domain.models.Role;
 import com.ticket_booking.domain.models.User;
 import com.ticket_booking.user.commands.UserCommands.ChangePasswordCommand;
 import com.ticket_booking.user.commands.UserCommands.UpdateUserCommand;
@@ -102,6 +105,17 @@ public class UserService {
 	public void deleteUser(Long userId) {
 
 	    User user = findUser(userId);
+	    Role adminRole = new Role(AppRole.ROLE_ADMIN.name());
+	    
+	    if (user.hasRole(adminRole)) {
+				
+				long numberOfAdmins = userRepository.countByRolesName(adminRole.getName());
+
+				if(numberOfAdmins == 1)
+					throw new LastAdminUserException(
+							"Last Administrator can't be deleted"
+					);
+			}
 
 	    refreshTokenService.revokeAllUserTokens(user.getId());
 

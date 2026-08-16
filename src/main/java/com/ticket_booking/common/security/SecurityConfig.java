@@ -2,6 +2,7 @@ package com.ticket_booking.common.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -41,8 +42,26 @@ public class SecurityConfig {
 			session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 	
 			.authorizeHttpRequests(auth -> auth
-					.requestMatchers("/api/public/**").permitAll()
-					.requestMatchers(
+
+				    // Public endpoints
+				    .requestMatchers("/api/public/**").permitAll()
+
+				    .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
+				    .requestMatchers(HttpMethod.GET, "/api/venues/**").permitAll()
+
+				    // Admin endpoints
+				    .requestMatchers(HttpMethod.POST, "/api/events").hasRole("ADMIN")
+				    .requestMatchers(HttpMethod.PUT, "/api/events/**").hasRole("ADMIN")
+				    .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("ADMIN")
+
+				    .requestMatchers(HttpMethod.POST, "/api/venues").hasRole("ADMIN")
+				    .requestMatchers(HttpMethod.PUT, "/api/venues/**").hasRole("ADMIN")
+				    .requestMatchers(HttpMethod.DELETE, "/api/venues/**").hasRole("ADMIN")
+
+				    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+				    
+				    // Swagger endpoints
+				    .requestMatchers(
 							"/swagger-ui/**",
 			                "/swagger-ui.html",
 			                "/v3/api-docs/**",
@@ -52,8 +71,10 @@ public class SecurityConfig {
 			                "/api-docs/**",
 			                "/api-docs.yaml")
 					.permitAll()
-					.anyRequest()
-					.authenticated())
+
+				    // Secure default
+				    .anyRequest().authenticated()
+			)
 	
 			.exceptionHandling(ex -> ex
 					.authenticationEntryPoint(authenticationEntryPoint)

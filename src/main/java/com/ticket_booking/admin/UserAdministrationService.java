@@ -65,7 +65,9 @@ public class UserAdministrationService {
 			long numberOfAdmins = userRepository.countByRolesName(roleName.name());
 
 			if(numberOfAdmins == 1)
-				throw new LastAdminUserException();
+				throw new LastAdminUserException(
+						"Last Administrator can't have their ADMIN role revoked"
+				);
 		}
 		
 		user.revokeRole(role);
