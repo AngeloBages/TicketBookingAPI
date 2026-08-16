@@ -1,0 +1,54 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-drop-booking-seats
+      author: angelo-b
+      changes:
+
+        - dropTable:
+            tableName: booking_seats
+
+      rollback:
+        - createTable:
+            tableName: booking_seats
+            columns:
+
+              - column:
+                  name: booking_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: seat_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addPrimaryKey:
+            tableName: booking_seats
+            columnNames: booking_id, seat_id
+            constraintName: pk_booking_seats
+
+        - addForeignKeyConstraint:
+            constraintName: fk_booking_seats_booking
+            baseTableName: booking_seats
+            baseColumnNames: booking_id
+            referencedTableName: booking
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        - addForeignKeyConstraint:
+            constraintName: fk_booking_seats_seat
+            baseTableName: booking_seats
+            baseColumnNames: seat_id
+            referencedTableName: seat
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        - createIndex:
+            tableName: booking_seats
+            indexName: idx_booking_seats_seat
+            columns:
+              - column:
+                  name: seat_id

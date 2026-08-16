@@ -2,11 +2,13 @@
 
 import com.ticket_booking.booking.responses.BookingResponses.BookingResponse;
 import com.ticket_booking.booking.responses.BookingResponses.EventSummaryResponse;
-import com.ticket_booking.booking.responses.BookingResponses.SeatResponse;
+import com.ticket_booking.booking.responses.BookingResponses.BookingSeatSummaryResponse;
 import com.ticket_booking.booking.responses.BookingResponses.VenueSummaryResponse;
 import com.ticket_booking.domain.models.Booking;
 
-public class BookingMapper {
+public final class BookingMapper {
+	
+	private BookingMapper() {}
 
 	public static BookingResponse toResponse(Booking booking) {
 
@@ -19,6 +21,7 @@ public class BookingMapper {
 	            new EventSummaryResponse(
 	                    booking.getEvent().getUuid(),
 	                    booking.getEvent().getTitle(),
+	                    booking.getEvent().getDescription(),
 	                    booking.getEvent().getDate(),
 	                    booking.getEvent().getPrice()
 	            ),
@@ -29,11 +32,13 @@ public class BookingMapper {
 	                    booking.getEvent().getVenue().getAddress()
 	            ),
 
-	            booking.getSeats()
+	            booking.getBookingSeats()
 	                    .stream()
-	                    .map(seat -> new SeatResponse(
-	                            seat.getRow(),
-	                            seat.getNumber()
+	                    .map(bookingSeat -> new BookingSeatSummaryResponse(
+	                            bookingSeat.getEventSeat().getSeat().getNumber(),
+	                            bookingSeat.getEventSeat().getSeat().getRow(),
+	                            bookingSeat.getEventSeat().getStatus(),
+	                            bookingSeat.getEventSeat().getPrice()
 	                    ))
 	                    .toList()
 	    );

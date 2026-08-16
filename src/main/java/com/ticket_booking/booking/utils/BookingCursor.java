@@ -4,12 +4,12 @@ import java.time.Instant;
 
 public record BookingCursor(
 		Instant bookingTimestamp,
-	    Long id
+	    long bookingId
 ) {
 	
 	public BookingCursor {
 		
-		if (id == null || id <= 0) {
+		if (bookingId <= 0) {
             throw new IllegalArgumentException(
                     "BookingCursor must have a valid bookingId"
             );

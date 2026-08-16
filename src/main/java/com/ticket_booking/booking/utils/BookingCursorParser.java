@@ -19,7 +19,7 @@ public final class BookingCursorParser {
     public static String encode(BookingCursor bookingCursor) {
 
         String value = bookingCursor.bookingTimestamp()
-                + "|" + bookingCursor.id();
+                + "|" + bookingCursor.bookingId();
 
         return Base64.getUrlEncoder()
                 .withoutPadding()

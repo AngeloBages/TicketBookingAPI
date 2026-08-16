@@ -27,7 +27,7 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
         FROM Booking b
         WHERE b.user.id = :userId
         AND (
-            b.bookedAt < :bookingDate
+            b.bookedAt < :bookingTimestamp
             OR (
                 b.bookedAt = :bookingTimestamp
                 AND b.id < :id
@@ -46,9 +46,10 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
         FROM Booking b
         JOIN FETCH b.event e
         JOIN FETCH e.venue
-        LEFT JOIN FETCH b.seats
+        JOIN FETCH b.bookingSeats bs
+        JOIN FETCH bs.eventSeat es
+        JOIN FETCH es.seat
         WHERE b.id IN :ids
-        ORDER BY b.bookedAt DESC, b.id DESC
     """)
     List<Booking> fetchBookings(
             @Param("ids") List<Long> ids);

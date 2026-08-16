@@ -7,8 +7,11 @@ import java.util.List;
 import java.util.UUID;
 
 import com.ticket_booking.domain.models.enums.BookingStatus;
+import com.ticket_booking.domain.models.enums.EventSeatStatus;
 
-public class BookingResponses {
+public final class BookingResponses {
+	
+	private BookingResponses() {}
 	
 	public record BookingResponse(
 		    UUID bookingId,
@@ -17,12 +20,13 @@ public class BookingResponses {
 		    BigDecimal totalPrice,
 		    EventSummaryResponse event,
 		    VenueSummaryResponse venue,
-		    List<SeatResponse> seats
+		    List<BookingSeatSummaryResponse> seats
 	) {}
 	
 	public record EventSummaryResponse(
 			UUID id,
 		    String title,
+		    String description,
 		    LocalDate date,
 		    BigDecimal price
 	) {}
@@ -33,8 +37,10 @@ public class BookingResponses {
 		    String address
 	) {}
 	
-	public record SeatResponse(
-		    String row,
-		    int number
+	public record BookingSeatSummaryResponse(
+	        int number,
+	        String row,
+	        EventSeatStatus status,
+	        BigDecimal price
 	) {}
 }
