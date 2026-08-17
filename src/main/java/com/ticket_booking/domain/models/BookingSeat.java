@@ -60,14 +60,13 @@ public class BookingSeat {
     
     	this.booking = Objects.requireNonNull(booking);
         this.eventSeat = Objects.requireNonNull(eventSeat);
+        this.price = eventSeat.getPrice();
 
-        if (!belongsToSameEvent()) {
+        if (!belongsToSameEvent(booking, eventSeat)) {
             throw new InvalidBookingSeatStateException(
                     "The seat and booking must belong to the same event"
             );
         }
-
-        this.price = eventSeat.getPrice();
     }
     
     public static BookingSeat create(
@@ -100,7 +99,7 @@ public class BookingSeat {
 		return price;
 	}
 	
-	private boolean belongsToSameEvent() {
+	private static boolean belongsToSameEvent(Booking booking, EventSeat eventSeat) {
         return Objects.equals(
                 booking.getEventId(),
                 eventSeat.getEventId()

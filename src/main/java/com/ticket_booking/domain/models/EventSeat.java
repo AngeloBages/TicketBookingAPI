@@ -77,6 +77,12 @@ public class EventSeat {
     		Seat seat,
     		EventPrice eventPrice) {
     	
+    	this.uuid = UUID.randomUUID();
+    	this.event = Objects.requireNonNull(event);
+    	this.seat = Objects.requireNonNull(seat);
+    	this.price = eventPrice.value();
+    	this.status = EventSeatStatus.AVAILABLE;
+    	
     	if (!seat.isActive()) {
             throw new InvalidEventSeatStateException(
                     "An inactive seat cannot be associated with an event"
@@ -88,12 +94,6 @@ public class EventSeat {
                     "The seat and event must belong to the same venue"
             );
         }
-    	
-    	this.uuid = UUID.randomUUID();
-    	this.event = Objects.requireNonNull(event);
-    	this.seat = Objects.requireNonNull(seat);
-    	this.price = eventPrice.value();
-    	this.status = EventSeatStatus.AVAILABLE;
     }
     
     public static EventSeat create(
@@ -192,7 +192,7 @@ public class EventSeat {
 		return Objects.equals(uuid, es.uuid);
 	}
 	
-	private boolean belongsToSameVenue(Event event, Seat seat) {
+	private static boolean belongsToSameVenue(Event event, Seat seat) {
 		return Objects.equals(
 				event.getVenueId(),
 				seat.getVenueId()
