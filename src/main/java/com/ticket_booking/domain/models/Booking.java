@@ -3,12 +3,14 @@ package com.ticket_booking.domain.models;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 import com.ticket_booking.booking.exceptions.DuplicateBookingSeatException;
+import com.ticket_booking.booking.exceptions.EventSeatNotAvailableException;
 import com.ticket_booking.booking.exceptions.InvalidBookingStateException;
 import com.ticket_booking.domain.models.enums.BookingStatus;
 
@@ -91,18 +93,29 @@ public class Booking {
 	
 	public static Booking create(
 	        User user,
-	        Event event) {
+	        Event event,
+	        Collection<EventSeat> seats) {
 
-	    return new Booking(
+	    Booking booking =  new Booking(
 	    		user,
 	    		event
 	    );
+	    
+	    for(EventSeat seat : seats) {
+	    	booking.addSeat(seat);
+	    }
+	    
+	    return booking;
 	}
 	
-	public void addSeat(EventSeat eventSeat, BigDecimal price) {
+	public void addSeat(EventSeat eventSeat) {
 
 	    Objects.requireNonNull(eventSeat);
-	    Objects.requireNonNull(price);
+	    Objects.requireNonNull(eventSeat.getPrice());
+	    
+	    if(!eventSeat.isAvailable()){
+	    	throw new EventSeatNotAvailableException();
+	    }
 	    
 	    if (!isFromSameEvent(eventSeat)) {
 	        throw new InvalidBookingStateException(
@@ -120,16 +133,73 @@ public class Booking {
         if (exists) {
             throw new DuplicateBookingSeatException();
         }
+	    
+	    eventSeat.reserve();
 
 	    BookingSeat bookingSeat =
 	            BookingSeat.create(
 	            		this, 
 	            		eventSeat
 	            );
-
-	    bookingSeats.add(bookingSeat);
 	    
+	    bookingSeats.add(bookingSeat);
 	    this.totalPrice = totalPrice.add(eventSeat.getPrice());
+	}
+	
+	public void cancel() {
+		
+		switch (status) {
+			
+		    case PENDING -> {
+				releaseSeats();
+				status = BookingStatus.CANCELLED;
+			}
+	
+		    case CONFIRMED ->
+	            throw new InvalidBookingStateException(
+	                    "A confirmed booking must go through the refund process"
+	            );
+	
+	        case CANCELLED ->
+	            throw new InvalidBookingStateException(
+	                "The booking is already cancelled"
+	            );
+	
+	        case REFUND_PENDING ->
+	            throw new InvalidBookingStateException(
+	                "A booking waiting for refund cannot be canceled"
+	            );
+	           
+	        case REFUNDED ->
+	            throw new InvalidBookingStateException(
+	                "A booking already refunded cannot be canceled"
+	            );
+	    }
+	    
+	    //Propagete domain event?
+	}
+	
+	public void requestRefund() {
+
+	    if (status != BookingStatus.CONFIRMED) {
+	        throw new InvalidBookingStateException(
+	                "Only a confirmed booking can be refunded"
+	        );
+	    }
+
+	    status = BookingStatus.REFUND_PENDING;
+	}
+	
+	public void refund() {
+
+	    if (status != BookingStatus.REFUND_PENDING) {
+	        throw new InvalidBookingStateException(
+	                "The booking is not waiting for a refund"
+	        );
+	    }
+
+	    releaseSeats();
+	    status = BookingStatus.REFUNDED;
 	}
 
 	public UUID getUuid() {
@@ -172,6 +242,14 @@ public class Booking {
 	    return Objects.equals(
 	            this.event.getId(),
 	            eventSeat.getEventId()
+	    );
+	}
+	
+	private void releaseSeats() {
+
+	    bookingSeats.forEach(
+	            bookingSeat ->
+	                    bookingSeat.getEventSeat().release()
 	    );
 	}
 }

@@ -39,11 +39,14 @@ databaseChangeLog:
       file: classpath:db/changelog/migrations/013-event-add-status.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/014-create-event-seat-table.yaml
+      file: classpath:db/changelog/migrations/014-create-event-seat-tables.yaml
 
   - include:
       file: classpath:db/changelog/migrations/015-remove-booking-seats-table.yaml
 
   - include:
       file: classpath:db/changelog/migrations/016-create-booking-seat-table.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/017-booking-create-idx-user-booked-id.yaml
 

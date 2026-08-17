@@ -8,12 +8,8 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ticket_booking.booking.BookingService;
-import com.ticket_booking.booking.responses.BookingResponses.BookingResponse;
-import com.ticket_booking.common.CursorPage;
 import com.ticket_booking.user.commands.UserCommands.ChangePasswordCommand;
 import com.ticket_booking.user.commands.UserCommands.UpdateUserCommand;
 import com.ticket_booking.user.responses.UserResponses.UserInfoResponse;
@@ -22,8 +18,6 @@ import static com.ticket_booking.user.requests.UserRequests.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 
 @RestController
 @RequestMapping("/api/users")
@@ -31,13 +25,10 @@ import jakarta.validation.constraints.Min;
 public class UserController {
 	
 	private final UserService userService;
-	private final BookingService bookingService;
 	
 	public UserController(
-			UserService userService,
-			BookingService bookingService) {
+			UserService userService) {
 		this.userService = userService;
-		this.bookingService = bookingService;
 	}
 
 	@GetMapping("/me")
@@ -100,21 +91,5 @@ public class UserController {
 		userService.deleteUser(userId);
 		
 		return ResponseEntity.noContent().build();
-	}
-	
-	@GetMapping("/me/bookings")
-	@Operation(summary = "Get authenticated user's bookings' details")
-	public ResponseEntity<CursorPage<BookingResponse>> getUserBookings(
-			@AuthenticationPrincipal(expression = "user.id") Long userId,
-			@RequestParam(required = false) String cursor,
-			@RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit) {
-		
-		return ResponseEntity.ok(
-				bookingService.getUserBookings(
-						userId,
-						cursor,
-						limit
-					)
-				);
 	}
 }

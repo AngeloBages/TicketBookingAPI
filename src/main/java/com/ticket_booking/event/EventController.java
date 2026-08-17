@@ -122,10 +122,21 @@ public class EventController {
 		return ResponseEntity.noContent().build();
 	}
 	
+	@PatchMapping("/{id}/scheduling")
+	@Operation(summary = "Schedule an Event")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<Void> scheduleEvent(
+	        @PathVariable("id") UUID eventId) {
+
+	    eventService.scheduleEvent(eventId);
+
+	    return ResponseEntity.noContent().build();
+	}
+	
 	@PatchMapping("/{id}/cancellation")
 	@Operation(summary = "Cancel an Event")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<Void> deleteEvent(@PathVariable("id") UUID eventId) {
+	public ResponseEntity<Void> cancelEvent(@PathVariable("id") UUID eventId) {
 		
 		eventService.cancelEvent(eventId);
 		

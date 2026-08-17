@@ -15,12 +15,4 @@ public class EventNotFoundException extends DomainException {
             "Event was not found."
         );
     }
-	
-	public EventNotFoundException(String role) {
-        super(
-            HttpStatus.NOT_FOUND,
-            "Event Not Found",
-            "Event was not found: " + role
-        );
-    }
 }

@@ -1,17 +1,22 @@
 package com.ticket_booking.event.repositories;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.ticket_booking.domain.models.Event;
+import com.ticket_booking.domain.models.EventSeat;
 import com.ticket_booking.event.repositories.views.EventSeatView;
+
+import jakarta.persistence.LockModeType;
 
 public interface IEventRepository extends JpaRepository<Event, Long> {
 
@@ -69,4 +74,17 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 	public List<EventSeatView> findSeatsByEventId(@Param("eventId") UUID eventId);
 	
 	public boolean existsByUuid(UUID uuid);
+	
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("""
+	    SELECT es
+	    FROM EventSeat es
+	    JOIN FETCH es.seat
+	    JOIN FETCH es.event e
+	    WHERE e.uuid = :eventId
+	      AND es.uuid IN :seatIds
+	    """)
+	public List<EventSeat> findSeatsForBooking(
+			@Param("eventId") UUID eventId,
+	        @Param("seatIds") Collection<UUID> seatIdss);
 }

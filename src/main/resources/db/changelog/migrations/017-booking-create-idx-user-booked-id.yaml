@@ -1,0 +1,19 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-create-idx-booking-user-booked-id
+      author: angelo-b
+      changes:
+
+        - createIndex:
+            tableName: booking
+            indexName: idx_booking_user_booked_id
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: booked_at
+                  descending: true
+              - column:
+                  name: id
+                  descending: true

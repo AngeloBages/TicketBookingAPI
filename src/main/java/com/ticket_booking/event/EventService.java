@@ -139,6 +139,14 @@ public class EventService {
 		
 		event.cancel();
 	}
+	
+	@Transactional
+	public void scheduleEvent(UUID eventId) {
+
+	    Event event = findEvent(eventId);
+
+	    event.schedule();
+	}
 
     private String createCursor(Event event) {
 

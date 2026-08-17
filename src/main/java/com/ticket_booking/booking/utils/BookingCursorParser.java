@@ -7,7 +7,6 @@ import java.util.Base64;
 import org.apache.logging.log4j.util.Strings;
 
 import com.ticket_booking.booking.exceptions.InvalidBookingCursorException;
-import com.ticket_booking.venue.exceptions.InvalidVenueCursorException;
 
 public final class BookingCursorParser {
 	
@@ -53,7 +52,7 @@ public final class BookingCursorParser {
             );
             
     	} catch (IllegalArgumentException ex) {
-            throw new InvalidVenueCursorException();
+            throw new InvalidBookingCursorException();
         }
     }
 }

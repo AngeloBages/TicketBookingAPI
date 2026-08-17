@@ -15,7 +15,7 @@ public class RefreshTokenNotFoundException extends DomainException {
             "Refresh token not found."
         );
     }
-
+    
     public RefreshTokenNotFoundException(String token) {
         super(
             HttpStatus.NOT_FOUND,

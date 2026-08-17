@@ -118,8 +118,32 @@ public class EventSeat {
         status = EventSeatStatus.RESERVED;
     }
     
+    public void book() {
+    	if (status != EventSeatStatus.RESERVED) {
+    		throw new InvalidEventSeatStateException(
+    				"Only a reserved seat can be booked");
+    	}
+
+    	status = EventSeatStatus.BOOKED;
+    }
+    
+    public void release() {
+    	if (status != EventSeatStatus.RESERVED
+    			&& status != EventSeatStatus.BOOKED) {
+
+    		throw new InvalidEventSeatStateException(
+    				"The seat cannot be released from its current state");
+    	}
+
+    	status = EventSeatStatus.AVAILABLE;
+    }
+    
     public void changePrice(BigDecimal price) {
     	this.price = new EventPrice(price).value();
+    }
+    
+    public boolean isAvailable() {
+    	return this.status == EventSeatStatus.AVAILABLE;
     }
     
 	public Long getId() {

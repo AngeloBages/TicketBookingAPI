@@ -209,6 +209,28 @@ public class Event {
 	    //Propagete domain event?
 	}
 	
+	public void schedule() {
+
+	    if (status != EventStatus.DRAFT) {
+	        throw new InvalidEventStateException(
+	                "Only draft events can be scheduled"
+	        );
+	    }
+
+	    status = EventStatus.SCHEDULED;
+	}
+	
+	public void complete() {
+
+	    if (status != EventStatus.SCHEDULED) {
+	        throw new InvalidEventStateException(
+	                "Only a scheduled event can be completed"
+	        );
+	    }
+
+	    status = EventStatus.COMPLETED;
+	}
+	
 	public void ensureBookable() {
 	    if (status != EventStatus.SCHEDULED) {
 	        throw new InvalidEventStateException(

@@ -88,6 +88,10 @@ public class BookingSeat {
 		return booking;
 	}
 
+	public Long getBookingId() {
+		return this.booking.getId();
+	}
+	
 	public EventSeat getEventSeat() {
 		return eventSeat;
 	}
