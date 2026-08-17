@@ -2,6 +2,8 @@ package com.ticket_booking.venue.requests;
 
 import java.util.List;
 
+import com.ticket_booking.common.validation.UniqueElements;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -24,8 +26,8 @@ public final class VenueRequests {
 			String address,
 			
 			@NotEmpty
-			@Valid
-			List<SeatRequestDto> seats
+			@UniqueElements
+			List<@Valid SeatRequestDto> seats
 	) {}
 	
 	public record VenueUpdateRequest(
