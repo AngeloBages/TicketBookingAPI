@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +31,11 @@ public class VenueService {
 	@Transactional(readOnly = true)
 	public CursorPage<VenueSummaryResponse> getVenues(String cursor, int limit) {
 		
-		Pageable pageable = PageRequest.of(0, limit + 1);
+		Limit queryLimit = Limit.of(limit + 1);
 		
 		List<Venue> venues = Strings.isBlank(cursor)
-		    		? venueRepository.findByOrderByIdAsc(pageable)
-		    		: findNextPage(cursor, pageable);
+		    		? venueRepository.findByOrderByIdAsc(queryLimit)
+		    		: findNextPage(cursor, queryLimit);
 		
 		if(venues.isEmpty()) {
         	return new CursorPage<>(
@@ -115,12 +114,12 @@ public class VenueService {
 				.orElseThrow(() -> new VenueNotFoundException());
 	}
 	
-	private List<Venue> findNextPage(String cursor, Pageable pageable) {
+	private List<Venue> findNextPage(String cursor, Limit limit) {
 		VenueCursor decoded = VenueCursorParser.decode(cursor);
 
 		return venueRepository.findByIdGreaterThanOrderByIdAsc(
 				decoded.venueId(), 
-				pageable
+				limit
 			);
 	}
 	

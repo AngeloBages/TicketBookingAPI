@@ -6,8 +6,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,11 +43,11 @@ public class BookingService {
 	@Transactional(readOnly = true)
 	public CursorPage<BookingResponse> getUserBookings(Long userId, String cursor, int limit) {
 
-		Pageable pageable = PageRequest.of(0, limit + 1);
+		Limit queryLimit = Limit.of(limit + 1);
 
         List<Booking> bookings = Strings.isBlank(cursor)
-        		? bookingRepository.findFirstPage(userId, pageable)
-        		: findNextPage(userId, cursor, pageable);
+        		? bookingRepository.findFirstPage(userId, queryLimit)
+        		: findNextPage(userId, cursor, queryLimit);
         
         if(bookings.isEmpty()) {
         	return new CursorPage<>(
@@ -143,7 +142,7 @@ public class BookingService {
 	private List<Booking> findNextPage(
 			Long userId, 
 			String cursor, 
-			Pageable pageable) {
+			Limit limit) {
 		
 		BookingCursor decoded = BookingCursorParser.decode(cursor);
 
@@ -151,7 +150,7 @@ public class BookingService {
                 userId,
                 decoded.bookingTimestamp(),
                 decoded.bookingId(),
-                pageable);
+                limit);
 	}
 	
 	private String createCursor(Booking booking) {

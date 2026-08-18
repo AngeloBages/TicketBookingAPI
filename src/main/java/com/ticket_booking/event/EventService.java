@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,11 +41,11 @@ public class EventService {
 	
 	@Transactional(readOnly = true)
 	public CursorPage<EventSummaryResponse> getEvents(String cursor, int limit) {
-		Pageable pageable = PageRequest.of(0, limit + 1);
+		Limit queryLimit = Limit.of(limit + 1);
 
         List<Event> events = Strings.isBlank(cursor)
-        		? eventRepository.findFirstPage(pageable)
-        		: findNextPage(cursor, pageable);
+        		? eventRepository.findFirstPage(queryLimit)
+        		: findNextPage(cursor, queryLimit);
         
         if(events.isEmpty()) {
         	return new CursorPage<>(
@@ -160,14 +159,14 @@ public class EventService {
     
     private List<Event> findNextPage(
             String cursor,
-            Pageable pageable) {
+            Limit limit) {
 
         EventCursor decoded = EventCursorParser.decode(cursor);
 
         return eventRepository.findNextPage(
                 decoded.eventDateTime(),
                 decoded.eventId(),
-                pageable
+                limit
         );
     }
 	

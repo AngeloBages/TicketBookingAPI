@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,7 +25,7 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
     """)
     List<Booking> findFirstPage(
             @Param("userId") Long userId,
-            Pageable pageable);
+            Limit limit);
 
     @Query("""
         SELECT b
@@ -46,7 +46,7 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
             @Param("userId") Long userId,
             @Param("bookingTimestamp") Instant bookingTimestamp,
             @Param("id") Long id,
-            Pageable pageable);
+            Limit limit);
 
     @Query("""
         SELECT DISTINCT bs
@@ -59,27 +59,27 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
             @Param("ids") List<Long> ids);
     
     @Query("""
-            SELECT b
-            FROM Booking b
-            JOIN FETCH b.event e
-            JOIN FETCH e.venue
-            JOIN FETCH b.bookingSeats bs
-            JOIN FETCH bs.eventSeat es
-            JOIN FETCH es.seat
-            WHERE b.uuid = :bookingId 
-            AND b.user.id = :userId
-        """)
-        Optional<Booking> findByUuidAndUserIdFull(
-                @Param("bookingId") UUID bookingId, 
-                @Param("userId") Long userId);
+        SELECT DISTINCT b
+        FROM Booking b
+        JOIN FETCH b.event e
+        JOIN FETCH e.venue
+        JOIN FETCH b.bookingSeats bs
+        JOIN FETCH bs.eventSeat es
+        JOIN FETCH es.seat
+        WHERE b.uuid = :bookingId 
+          AND b.user.id = :userId
+    """)
+    Optional<Booking> findByUuidAndUserIdFull(
+            @Param("bookingId") UUID bookingId, 
+            @Param("userId") Long userId);
     
     @Query("""
-            SELECT DISTINCT b
-		    FROM Booking b
-		    JOIN FETCH b.bookingSeats bs
-		    JOIN FETCH bs.eventSeat es
-		    WHERE b.uuid = :bookingId
-		      AND b.user.id = :userId
-    		""")
-    	Optional<Booking> findByUuidAndUserIdWithSeats(UUID bookingId, Long userId);
+    	SELECT DISTINCT b
+		FROM Booking b
+		JOIN FETCH b.bookingSeats bs
+		JOIN FETCH bs.eventSeat es
+		WHERE b.uuid = :bookingId
+		  AND b.user.id = :userId
+	""")
+	Optional<Booking> findByUuidAndUserIdWithSeats(UUID bookingId, Long userId);
 }

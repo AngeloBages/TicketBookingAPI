@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -26,7 +26,7 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 			JOIN FETCH e.venue
 			ORDER BY e.startsAt DESC, e.id DESC
 			""")
-	public List<Event> findFirstPage(Pageable pageable);
+	public List<Event> findFirstPage(Limit limit);
 	
 	@Query("""
 			SELECT e
@@ -43,7 +43,7 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 	public List<Event> findNextPage(
 			@Param("startsAt") Instant startsAt, 
 			@Param("eventId") Long eventId, 
-			Pageable pageable);
+			Limit limit);
 	
 	public Optional<Event> findByUuid(UUID eventId);
 	
