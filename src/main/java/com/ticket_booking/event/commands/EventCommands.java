@@ -1,7 +1,7 @@
 package com.ticket_booking.event.commands;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public final class EventCommands {
@@ -11,7 +11,7 @@ public final class EventCommands {
 	public record CreateEventCommand(
 			String title,
 			String description,
-			LocalDate date,
+			LocalDateTime startsAt,
 			BigDecimal price,
 			UUID venueId
 	) {}
@@ -20,7 +20,7 @@ public final class EventCommands {
 			UUID eventId,
 			String title,
 			String description,
-			LocalDate date,
+			LocalDateTime startsAt,
 			BigDecimal price
 	) {}
 }

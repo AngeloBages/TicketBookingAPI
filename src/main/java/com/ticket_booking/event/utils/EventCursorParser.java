@@ -1,7 +1,7 @@
 package com.ticket_booking.event.utils;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.Base64;
 
 import org.apache.logging.log4j.util.Strings;
@@ -14,7 +14,7 @@ public final class EventCursorParser {
 	
 	public static String encode(EventCursor cursor) {
 		
-		String encoded = cursor.eventDate() + "|" + cursor.eventId();
+		String encoded = cursor.eventDateTime() + "|" + cursor.eventId();
 		
 		return Base64.getUrlEncoder()
                 .withoutPadding()
@@ -44,7 +44,7 @@ public final class EventCursorParser {
 			}
 			
 			return new EventCursor(
-					LocalDate.parse(parts[0]),
+					Instant.parse(parts[0]),
 					Long.valueOf(parts[1])
 			);
 			

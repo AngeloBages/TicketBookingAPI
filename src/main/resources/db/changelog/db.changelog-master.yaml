@@ -50,3 +50,8 @@ databaseChangeLog:
   - include:
       file: classpath:db/changelog/migrations/017-booking-create-idx-user-booked-id.yaml
 
+  - include:
+      file: classpath:db/changelog/migrations/018-venue-add-time-zone.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/019-event-change-date-to-timestamp.yaml

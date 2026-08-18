@@ -1,7 +1,7 @@
 package com.ticket_booking.event.responses;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,7 +17,7 @@ public final class EventResponses {
 			UUID id,
 		    String title,
 		    String description,
-		    LocalDate date,
+		    ZonedDateTime startsAt,
 		    BigDecimal price,
 		    EventStatus status,
 		    VenueSummaryResponse venue,
@@ -28,7 +28,7 @@ public final class EventResponses {
 			UUID id,
 		    String title,
 		    String description,
-		    LocalDate date,
+		    ZonedDateTime startsAt,
 		    BigDecimal price,
 		    EventStatus status,
 		    VenueSummaryResponse venue
@@ -37,7 +37,8 @@ public final class EventResponses {
 	public record VenueSummaryResponse(
 			UUID id,
 		    String name,
-		    String address
+		    String address,
+		    String timeZone
 	) {}
 	
 	public record EventSeatSummaryResponse(

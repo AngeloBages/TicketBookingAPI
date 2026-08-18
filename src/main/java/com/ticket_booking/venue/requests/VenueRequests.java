@@ -3,6 +3,7 @@ package com.ticket_booking.venue.requests;
 import java.util.List;
 
 import com.ticket_booking.common.validation.UniqueElements;
+import com.ticket_booking.common.validation.ValidTimeZone;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -15,7 +16,7 @@ public final class VenueRequests {
 	
 	private VenueRequests() {}
 
-	public record VenueCreateRequest(
+	public record CreateVenueRequest(
 			
 			@NotBlank
 		    @Size(min = 8, max = 64)
@@ -24,13 +25,17 @@ public final class VenueRequests {
 			@NotBlank
 		    @Size(min = 10, max = 255)
 			String address,
+
+	        @NotBlank
+	        @ValidTimeZone
+	        String timeZone,
 			
 			@NotEmpty
 			@UniqueElements
 			List<@Valid SeatRequestDto> seats
 	) {}
 	
-	public record VenueUpdateRequest(
+	public record UpdateVenueRequest(
 			
 			@NotBlank
 		    @Size(min = 8, max = 64)

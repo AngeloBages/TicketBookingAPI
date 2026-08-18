@@ -1,7 +1,7 @@
 package com.ticket_booking.event.requests;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.validation.constraints.DecimalMax;
@@ -27,7 +27,7 @@ public final class EventRequests {
 
 			@NotNull
 			@Future
-			LocalDate date,
+			LocalDateTime startsAt,
 			
 			@NotNull
 			@PositiveOrZero
@@ -50,7 +50,7 @@ public final class EventRequests {
 
 			@NotNull
 			@Future
-			LocalDate date,
+			LocalDateTime startsAt,
 			
 			@NotNull
 			@PositiveOrZero

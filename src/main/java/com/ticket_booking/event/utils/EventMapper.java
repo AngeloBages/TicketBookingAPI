@@ -17,14 +17,15 @@ public final class EventMapper {
 	            event.getUuid(),
 	            event.getTitle(),
 	            event.getDescription(),
-	            event.getDate(),
+	            event.getStartsAtAtVenue(),
 	            event.getPrice(),
 	            event.getStatus(),
 	            
 	            new VenueSummaryResponse(
 	                    event.getVenue().getUuid(),
 	                    event.getVenue().getName(),
-	                    event.getVenue().getAddress()
+	                    event.getVenue().getAddress(),
+	                    event.getVenue().getTimeZone().getId()
 	            )
 	    );
 	}
@@ -35,14 +36,15 @@ public final class EventMapper {
 	            event.getUuid(),
 	            event.getTitle(),
 	            event.getDescription(),
-	            event.getDate(),
+	            event.getStartsAtAtVenue(),
 	            event.getPrice(),
 	            event.getStatus(),
 	            
 	            new VenueSummaryResponse(
 	                    event.getVenue().getUuid(),
 	                    event.getVenue().getName(),
-	                    event.getVenue().getAddress()
+	                    event.getVenue().getAddress(),
+	                    event.getVenue().getTimeZone().getId()
 	            ),
 	            
 	            event.getEventSeats()

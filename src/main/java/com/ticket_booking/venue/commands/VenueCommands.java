@@ -1,5 +1,6 @@
 package com.ticket_booking.venue.commands;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,6 +11,7 @@ public final class VenueCommands {
 	public record CreateVenueCommand(
 			String name,
 			String address,
+			ZoneId timeZone,
 			List<SeatDto> seats
 	) {}
 	

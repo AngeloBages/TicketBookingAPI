@@ -25,14 +25,15 @@ public final class BookingMapper {
 	                    booking.getEvent().getUuid(),
 	                    booking.getEvent().getTitle(),
 	                    booking.getEvent().getDescription(),
-	                    booking.getEvent().getDate(),
+	                    booking.getEvent().getStartsAtAtVenue(),
 	                    booking.getEvent().getPrice()
 	            ),
 
 	            new VenueSummaryResponse(
 	                    booking.getEvent().getVenue().getUuid(),
 	                    booking.getEvent().getVenue().getName(),
-	                    booking.getEvent().getVenue().getAddress()
+	                    booking.getEvent().getVenue().getAddress(),
+	                    booking.getEvent().getVenue().getTimeZone().getId()
 	            ),
 
 	            bookingSeats

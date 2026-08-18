@@ -80,7 +80,9 @@ public class VenueService {
 		
 		Venue venue = Venue.create(
 				command.name(),
-				command.address());
+				command.address(),
+				command.timeZone()
+				);
 		
 		for(SeatDto seat : command.seats()) {
 			venue.addSeat(

@@ -2,7 +2,7 @@ package com.ticket_booking.booking.responses;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,14 +26,15 @@ public final class BookingResponses {
 			UUID id,
 		    String title,
 		    String description,
-		    LocalDate date,
+		    ZonedDateTime startsAt,
 		    BigDecimal price
 	) {}
 	
 	public record VenueSummaryResponse(
 			UUID id,
 		    String name,
-		    String address
+		    String address,
+		    String timeZone
 	) {}
 	
 	public record BookingSeatSummaryResponse(

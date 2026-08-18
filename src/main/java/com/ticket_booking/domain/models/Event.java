@@ -1,7 +1,10 @@
 package com.ticket_booking.domain.models;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,7 +56,7 @@ public class Event {
     private String description;
 
     @Column(nullable = false)
-    private LocalDate date;
+    private Instant startsAt;
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
@@ -82,7 +85,7 @@ public class Event {
     private Event(
             EventTitle title,
             EventDescription description,
-            LocalDate date,
+            LocalDateTime startsAt,
             EventPrice price,
             Venue venue) {
 
@@ -90,16 +93,16 @@ public class Event {
 
         this.title = title.value();
         this.description = description.value();
-        this.date = validateEventDate(date);
         this.price = price.value();
         this.status = EventStatus.DRAFT;
         this.venue = Objects.requireNonNull(venue);
+        this.startsAt = validateStartsAt(startsAt, venue.getTimeZone());
     }
     
     public static Event create(
             String title,
             String description,
-            LocalDate date,
+            LocalDateTime startsAt,
             BigDecimal price,
             Venue venue,
             Collection<Seat> seats) {
@@ -107,7 +110,7 @@ public class Event {
     	Event event = new Event(
                 new EventTitle(title),
                 new EventDescription(description),
-                date,
+                startsAt,
                 new EventPrice(price),
                 venue
     	);
@@ -129,9 +132,9 @@ public class Event {
         this.description = new EventDescription(description).value();
     }
 
-    public void changeDate(LocalDate date) {
+    public void changeDate(LocalDateTime startsAt) {
     	ensureDraft();
-        this.date = validateEventDate(date);
+        this.startsAt = validateStartsAt(startsAt, this.venue.getTimeZone());
     }
 
     public void changePrice(BigDecimal price) {
@@ -251,8 +254,12 @@ public class Event {
 		return description;
 	}
 
-	public LocalDate getDate() {
-		return date;
+	public Instant getStartsAt() {
+		return startsAt;
+	}
+	
+	public ZonedDateTime getStartsAtAtVenue() {
+	    return startsAt.atZone(venue.getTimeZone());
 	}
 
 	public BigDecimal getPrice() {
@@ -279,20 +286,30 @@ public class Event {
 	    return Collections.unmodifiableList(eventSeats);
 	}
 	
-	private static LocalDate validateEventDate(LocalDate date) {
-		if (date == null) {
-            throw new InvalidEventFieldException(
-            		"date", "is required");
-        }
+	private static Instant validateStartsAt(
+	        LocalDateTime startsAt,
+	        ZoneId venueTimeZone) {
 
-        if (!date.isAfter(LocalDate.now())) {
-            throw new InvalidEventFieldException(
-                    "date", "must be in the future"
-            );
-        }
-        return date;
+	    if (startsAt == null) {
+	        throw new InvalidEventFieldException(
+	                "startsAt",
+	                "is required"
+	        );
+	    }
+
+	    ZonedDateTime zonedStartsAt = startsAt.atZone(venueTimeZone);
+
+	    if (!zonedStartsAt.isAfter(
+	            ZonedDateTime.now(venueTimeZone))) {
+
+	        throw new InvalidEventFieldException(
+	                "startsAt",
+	                "must be in the future"
+	        );
+	    }
+
+	    return zonedStartsAt.toInstant();
 	}
-	
 	private void ensureDraft() {
 	    if (status != EventStatus.DRAFT) {
 	        throw new InvalidEventStateException(

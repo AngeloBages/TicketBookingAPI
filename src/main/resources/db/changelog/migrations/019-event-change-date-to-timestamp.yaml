@@ -1,0 +1,25 @@
+databaseChangeLog:
+
+- changeSet:
+    id: 01-change-event-date-to-timestamp
+    author: angelo-b
+
+    changes:
+
+      - sql:
+          sql: |
+            ALTER TABLE event
+            ALTER COLUMN date
+            TYPE TIMESTAMP WITH TIME ZONE
+            USING date AT TIME ZONE 'UTC';
+
+      - addNotNullConstraint:
+          tableName: event
+          columnName: date
+          columnDataType: TIMESTAMP WITH TIME ZONE
+
+      - renameColumn:
+          tableName: event
+          oldColumnName: date
+          newColumnName: starts_at
+          columnDataType: TIMESTAMP WITH TIME ZONE

@@ -1,6 +1,7 @@
 package com.ticket_booking.venue;
 
 import java.net.URI;
+import java.time.ZoneId;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,8 @@ import com.ticket_booking.common.CursorPage;
 import com.ticket_booking.venue.commands.VenueCommands.CreateVenueCommand;
 import com.ticket_booking.venue.commands.VenueCommands.SeatDto;
 import com.ticket_booking.venue.commands.VenueCommands.UpdateVenueCommand;
-import static com.ticket_booking.venue.requests.VenueRequests.*;
+import com.ticket_booking.venue.requests.VenueRequests.CreateVenueRequest;
+import com.ticket_booking.venue.requests.VenueRequests.UpdateVenueRequest;
 import com.ticket_booking.venue.responses.VenueResponses.VenueResponse;
 import com.ticket_booking.venue.responses.VenueResponses.VenueSummaryResponse;
 
@@ -72,12 +74,13 @@ public class VenueController {
 	@Operation(summary = "Register a new Venue")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> registerVenue(
-			@Valid @RequestBody VenueCreateRequest request) {
+			@Valid @RequestBody CreateVenueRequest request) {
 		
 		UUID venueId = venueService.createVenue(
 				new CreateVenueCommand(
 						request.name(),
 						request.address(),
+						ZoneId.of(request.timeZone()),
 						request.seats()
 						    .stream()
 							.map(seat -> new SeatDto(
@@ -102,7 +105,7 @@ public class VenueController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> updateVenue(
 			@PathVariable("id") UUID venueId, 
-			@Valid @RequestBody VenueUpdateRequest request) {
+			@Valid @RequestBody UpdateVenueRequest request) {
 		
 		venueService.updateVenue(
 				new UpdateVenueCommand(

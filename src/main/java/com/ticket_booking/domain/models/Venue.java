@@ -1,8 +1,10 @@
 package com.ticket_booking.domain.models;
 
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import com.ticket_booking.domain.models.valueobjects.VenueAddress;
@@ -40,6 +42,9 @@ public class Venue {
 	@Column(nullable = false)
 	private String address;
 	
+	@Column(name = "time_zone", nullable = false, length = 50, updatable = false)
+	private String timeZone;
+	
 	@Column(nullable = false)
     private boolean active;
 	
@@ -58,22 +63,26 @@ public class Venue {
 	
     private Venue(
     		VenueName name, 
-    		VenueAddress address) {
+    		VenueAddress address,
+    		ZoneId zoneId) {
     	
     	this.uuid = UUID.randomUUID();
     	
         this.name = name.value();
         this.address = address.value();
+        this.timeZone = Objects.requireNonNull(zoneId).getId();
         this.active = true;
     }
 	
     public static Venue create(
             String name,
-            String address
+            String address,
+            ZoneId zoneId
     ) {
         return new Venue(
                 new VenueName(name),
-                new VenueAddress(address)
+                new VenueAddress(address),
+                zoneId
         );
     }
 	
@@ -137,6 +146,10 @@ public class Venue {
 
 	public String getAddress() {
 		return address;
+	}
+	
+	public ZoneId getTimeZone() {
+	    return ZoneId.of(timeZone);
 	}
 	
 	public boolean isActive() {

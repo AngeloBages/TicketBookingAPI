@@ -1,10 +1,10 @@
 package com.ticket_booking.event.utils;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 public record EventCursor(
 
-		LocalDate eventDate,
+		Instant eventDateTime,
 		long eventId
 ) {
 	
@@ -14,7 +14,7 @@ public record EventCursor(
                     "EventCursor must have a valid eventId");
 		}
 		
-		if(eventDate == null) {
+		if(eventDateTime == null) {
 			throw new IllegalArgumentException(
                     "EventCursor must have a valid eventDate");
 		}

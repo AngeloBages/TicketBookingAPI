@@ -112,7 +112,7 @@ public class EventService {
 		Event event = Event.create(
 				command.title(), 
 				command.description(),
-				command.date(),
+				command.startsAt(),
 				command.price(), 
 				venue,
 				venue.getActiveSeats()
@@ -129,7 +129,7 @@ public class EventService {
 		
 		event.changeTitle(command.title());
 		event.changeDescription(command.description());
-		event.changeDate(command.date());
+		event.changeDate(command.startsAt());
 		event.changePrice(command.price());
 	}
 	
@@ -152,7 +152,7 @@ public class EventService {
 
         return EventCursorParser.encode(
                 new EventCursor(
-                        event.getDate(),
+                        event.getStartsAt(),
                         event.getId()
                 )
         );
@@ -165,7 +165,7 @@ public class EventService {
         EventCursor decoded = EventCursorParser.decode(cursor);
 
         return eventRepository.findNextPage(
-                decoded.eventDate(),
+                decoded.eventDateTime(),
                 decoded.eventId(),
                 pageable
         );

@@ -14,6 +14,7 @@ public final class VenueMapper {
 				venue.getUuid(),
 				venue.getName(),
 				venue.getAddress(),
+				venue.getTimeZone().getId(),
 				venue.isActive()
 				);
 	}
@@ -23,6 +24,7 @@ public final class VenueMapper {
 				venue.getUuid(),
 				venue.getName(),
 				venue.getAddress(),
+				venue.getTimeZone().getId(),
 				venue.getSeats()
 					.stream()
 					.map(seat -> new SeatResponse(

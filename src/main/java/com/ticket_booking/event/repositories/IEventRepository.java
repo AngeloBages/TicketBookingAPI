@@ -1,6 +1,6 @@
 package com.ticket_booking.event.repositories;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +24,7 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 			SELECT e 
 			FROM Event e 
 			JOIN FETCH e.venue
-			ORDER BY e.date DESC, e.id DESC
+			ORDER BY e.startsAt DESC, e.id DESC
 			""")
 	public List<Event> findFirstPage(Pageable pageable);
 	
@@ -32,16 +32,16 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 			SELECT e
 			FROM Event e
 			JOIN FETCH e.venue
-			WHERE e.date < :eventDate 
+			WHERE e.startsAt < :startsAt 
 				OR (
-					e.date = :eventDate 
+					e.startsAt = :startsAt 
 						AND 
 					e.id < :eventId
 				)
-			ORDER BY e.date DESC, e.id DESC
+			ORDER BY e.startsAt DESC, e.id DESC
 			""")
 	public List<Event> findNextPage(
-			@Param("eventDate") LocalDate eventDate, 
+			@Param("startsAt") Instant startsAt, 
 			@Param("eventId") Long eventId, 
 			Pageable pageable);
 	
@@ -86,5 +86,5 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 	    """)
 	public List<EventSeat> findSeatsForBooking(
 			@Param("eventId") UUID eventId,
-	        @Param("seatIds") Collection<UUID> seatIdss);
+	        @Param("seatIds") Collection<UUID> seatIds);
 }

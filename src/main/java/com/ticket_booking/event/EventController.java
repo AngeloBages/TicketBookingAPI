@@ -87,7 +87,7 @@ public class EventController {
 				new CreateEventCommand(
 						request.title(),
 						request.description(),
-						request.date(),
+						request.startsAt(),
 						request.price(),
 						request.venueId()
 				)
@@ -114,7 +114,7 @@ public class EventController {
 						eventId,
 						request.title(),
 						request.description(),
-						request.date(),
+						request.startsAt(),
 						request.price()
 				)
 			);

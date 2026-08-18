@@ -1,0 +1,26 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-add-venue-time-zone
+      author: angelo-b
+
+      changes:
+
+        - addColumn:
+            tableName: venue
+            columns:
+              - column:
+                  name: time_zone
+                  type: varchar(50)
+
+        - update:
+            tableName: venue
+            columns:
+              - column:
+                  name: time_zone
+                  value: America/Sao_Paulo
+
+        - addNotNullConstraint:
+            tableName: venue
+            columnName: time_zone
+            columnDataType: varchar(50)

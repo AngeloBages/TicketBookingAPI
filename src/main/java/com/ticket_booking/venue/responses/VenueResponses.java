@@ -11,6 +11,7 @@ public final class VenueResponses {
 			UUID id,
 			String name,
 			String address,
+			String timeZone,
 			boolean active
 	){}
 
@@ -18,6 +19,7 @@ public final class VenueResponses {
 			UUID id,
 			String name,
 			String address,
+			String timeZone,
 			List<SeatResponse> seats
 	){}
 	
