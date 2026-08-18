@@ -49,7 +49,7 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
             Limit limit);
 
     @Query("""
-        SELECT DISTINCT bs
+        SELECT bs
         FROM BookingSeat bs
         JOIN FETCH bs.eventSeat es
         JOIN FETCH es.seat

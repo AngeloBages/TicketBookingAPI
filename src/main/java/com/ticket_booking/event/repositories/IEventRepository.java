@@ -51,8 +51,8 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 			SELECT DISTINCT e 
 			FROM Event e 
 			JOIN FETCH e.venue
-			LEFT JOIN FETCH e.eventSeats es
-			LEFT JOIN FETCH es.seat
+			JOIN FETCH e.eventSeats es
+			JOIN FETCH es.seat
 			WHERE e.uuid = :eventId
 			""")
 	public Optional<Event> findByUuidFetchVenueAndSeats(@Param("eventId") UUID eventId);

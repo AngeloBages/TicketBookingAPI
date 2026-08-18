@@ -24,7 +24,7 @@ public interface IVenueRepository extends JpaRepository<Venue, Long> {
     @Query("""
     		SELECT DISTINCT v 
     		FROM Venue v 
-    		LEFT JOIN FETCH v.seats 
+    		JOIN FETCH v.seats 
     		WHERE v.uuid = :venueId 
     			AND v.active = true
     		""")
