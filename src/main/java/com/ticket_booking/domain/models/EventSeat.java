@@ -108,18 +108,18 @@ public class EventSeat {
     		);
     }
     
-    public void reserve() {
+    public void held() {
         if (status != EventSeatStatus.AVAILABLE) {
             throw new InvalidEventSeatStateException(
                     "The seat is not available"
             );
         }
 
-        status = EventSeatStatus.RESERVED;
+        status = EventSeatStatus.HELD;
     }
     
     public void book() {
-    	if (status != EventSeatStatus.RESERVED) {
+    	if (status != EventSeatStatus.HELD) {
     		throw new InvalidEventSeatStateException(
     				"Only a reserved seat can be booked");
     	}
@@ -128,7 +128,7 @@ public class EventSeat {
     }
     
     public void release() {
-    	if (status != EventSeatStatus.RESERVED
+    	if (status != EventSeatStatus.HELD
     			&& status != EventSeatStatus.BOOKED) {
 
     		throw new InvalidEventSeatStateException(

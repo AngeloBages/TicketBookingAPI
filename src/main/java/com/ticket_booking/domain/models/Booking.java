@@ -9,9 +9,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.data.domain.AbstractAggregateRoot;
+
 import com.ticket_booking.booking.exceptions.DuplicateBookingSeatException;
 import com.ticket_booking.booking.exceptions.EventSeatNotAvailableException;
 import com.ticket_booking.booking.exceptions.InvalidBookingStateException;
+import com.ticket_booking.domain.events.BookingCancelledEvent;
 import com.ticket_booking.domain.models.enums.BookingStatus;
 
 import jakarta.persistence.CascadeType;
@@ -32,7 +35,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "booking")
-public class Booking {
+public class Booking extends AggregateRoot{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "booking_seq")
@@ -134,7 +137,7 @@ public class Booking {
             throw new DuplicateBookingSeatException();
         }
 	    
-	    eventSeat.reserve();
+	    eventSeat.held();
 
 	    BookingSeat bookingSeat =
 	            BookingSeat.create(
@@ -151,7 +154,6 @@ public class Booking {
 		switch (status) {
 			
 		    case PENDING -> {
-				releaseSeats();
 				status = BookingStatus.CANCELLED;
 			}
 	
@@ -175,8 +177,14 @@ public class Booking {
 	                "A booking already refunded cannot be canceled"
 	            );
 	    }
-	    
-	    //Propagete domain event?
+		
+		registerEvent(
+				new BookingCancelledEvent(
+					bookingSeats.stream()
+						.map(BookingSeat::getId)
+						.toList()
+				)
+		);
 	}
 	
 	public void requestRefund() {
@@ -197,9 +205,9 @@ public class Booking {
 	                "The booking is not waiting for a refund"
 	        );
 	    }
-
-	    releaseSeats();
 	    status = BookingStatus.REFUNDED;
+	    
+	    //registerEvent(new BookingRefundedEvent(bookingSeats.stream().map(BookingSeat::getId).toList()));
 	}
 
 	public UUID getUuid() {
@@ -242,14 +250,6 @@ public class Booking {
 	    return Objects.equals(
 	            this.event.getId(),
 	            eventSeat.getEventId()
-	    );
-	}
-	
-	private void releaseSeats() {
-
-	    bookingSeats.forEach(
-	            bookingSeat ->
-	                    bookingSeat.getEventSeat().release()
 	    );
 	}
 }

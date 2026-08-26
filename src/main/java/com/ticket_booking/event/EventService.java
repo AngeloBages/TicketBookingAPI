@@ -9,11 +9,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ticket_booking.common.CursorPage;
+import com.ticket_booking.common.DomainEventDispatcher;
 import com.ticket_booking.domain.models.Event;
+import com.ticket_booking.domain.models.EventSeat;
 import com.ticket_booking.domain.models.Venue;
 import com.ticket_booking.event.commands.EventCommands.CreateEventCommand;
 import com.ticket_booking.event.commands.EventCommands.UpdateEventCommand;
 import com.ticket_booking.event.exceptions.EventNotFoundException;
+import com.ticket_booking.event.exceptions.EventSeatNotFoundException;
 import com.ticket_booking.event.repositories.IEventRepository;
 import com.ticket_booking.event.responses.EventResponses.EventResponse;
 import com.ticket_booking.event.responses.EventResponses.EventSeatSummaryResponse;
@@ -30,13 +33,16 @@ public class EventService {
 
 	private final IEventRepository eventRepository;
 	private final IVenueRepository venueRepository;
+	private final DomainEventDispatcher eventDispatcher;
 	
 	public EventService(
 			IEventRepository eventRepository,
-			IVenueRepository venueRepository) {
+			IVenueRepository venueRepository,
+			DomainEventDispatcher eventDispatcher) {
 		
 		this.eventRepository = eventRepository;
 		this.venueRepository = venueRepository;
+		this.eventDispatcher = eventDispatcher;
 	}
 	
 	@Transactional(readOnly = true)
@@ -135,16 +141,29 @@ public class EventService {
 	@Transactional
 	public void cancelEvent(UUID eventId) {
 		Event event = findEvent(eventId);
-		
 		event.cancel();
+		eventDispatcher.publishEventsFor(event);
 	}
 	
 	@Transactional
 	public void scheduleEvent(UUID eventId) {
-
 	    Event event = findEvent(eventId);
 
 	    event.schedule();
+	}
+	
+	@Transactional
+	public void handleBookingCancellation(List<Long> bookingSeatIds) {
+		List<EventSeat> eventSeats = eventRepository
+				.findEventSeatsByBookingSeatsForUpdate(bookingSeatIds);
+		
+		if (eventSeats.size() != bookingSeatIds.size()) {
+	        throw new EventSeatNotFoundException();
+	    }
+		
+		for(EventSeat es : eventSeats) {
+			es.release();
+		}
 	}
 
     private String createCursor(Event event) {

@@ -19,7 +19,21 @@ import com.ticket_booking.event.repositories.views.EventSeatView;
 import jakarta.persistence.LockModeType;
 
 public interface IEventRepository extends JpaRepository<Event, Long> {
-
+	
+	public boolean existsByUuid(UUID uuid);
+	
+	public Optional<Event> findByUuid(UUID eventId);
+	
+	@Query("""
+			SELECT DISTINCT e 
+			FROM Event e 
+			JOIN FETCH e.venue
+			JOIN FETCH e.eventSeats es
+			JOIN FETCH es.seat
+			WHERE e.uuid = :eventId
+			""")
+	public Optional<Event> findByUuidFetchVenueAndSeats(@Param("eventId") UUID eventId);
+	
 	@Query("""
 			SELECT e 
 			FROM Event e 
@@ -45,18 +59,6 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 			@Param("eventId") Long eventId, 
 			Limit limit);
 	
-	public Optional<Event> findByUuid(UUID eventId);
-	
-	@Query("""
-			SELECT DISTINCT e 
-			FROM Event e 
-			JOIN FETCH e.venue
-			JOIN FETCH e.eventSeats es
-			JOIN FETCH es.seat
-			WHERE e.uuid = :eventId
-			""")
-	public Optional<Event> findByUuidFetchVenueAndSeats(@Param("eventId") UUID eventId);
-	
 	@Query("""
 			SELECT new com.ticket_booking.event.repositories.views.EventSeatView(
 				es.uuid,
@@ -73,8 +75,6 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 			""")
 	public List<EventSeatView> findSeatsByEventId(@Param("eventId") UUID eventId);
 	
-	public boolean existsByUuid(UUID uuid);
-	
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("""
 	    SELECT es
@@ -87,4 +87,13 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 	public List<EventSeat> findSeatsForBooking(
 			@Param("eventId") UUID eventId,
 	        @Param("seatIds") Collection<UUID> seatIds);
+	
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("""
+	    SELECT bs.eventSeat
+	    FROM BookingSeat bs
+	    WHERE bs.id IN :bookingSeatIds
+	    """)
+	List<EventSeat> findEventSeatsByBookingSeatsForUpdate(
+	        @Param("bookingSeatIds") List<Long> bookingSeatIds);
 }

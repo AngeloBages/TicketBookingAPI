@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.ticket_booking.domain.events.EventCancelledEvent;
 import com.ticket_booking.domain.models.enums.EventStatus;
 import com.ticket_booking.domain.models.valueobjects.EventDescription;
 import com.ticket_booking.domain.models.valueobjects.EventPrice;
@@ -39,7 +40,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "event")
-public class Event {
+public class Event extends AggregateRoot {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "event_seq")
@@ -196,7 +197,8 @@ public class Event {
 		                "A draft event cannot be canceled."
 	            );
 
-	        case SCHEDULED -> status = EventStatus.CANCELLED;
+	        case SCHEDULED -> 
+	        	status = EventStatus.CANCELLED;
 	
 	        case CANCELLED ->
 	            throw new InvalidEventStateException(
@@ -209,7 +211,7 @@ public class Event {
 	            );
 	    }
 	    
-	    //Propagete domain event?
+	    registerEvent(new EventCancelledEvent(this.id));
 	}
 	
 	public void schedule() {

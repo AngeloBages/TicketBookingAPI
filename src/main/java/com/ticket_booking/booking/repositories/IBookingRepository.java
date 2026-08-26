@@ -1,6 +1,7 @@
 package com.ticket_booking.booking.repositories;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,8 +13,16 @@ import org.springframework.data.repository.query.Param;
 
 import com.ticket_booking.domain.models.Booking;
 import com.ticket_booking.domain.models.BookingSeat;
+import com.ticket_booking.domain.models.enums.BookingStatus;
 
 public interface IBookingRepository extends JpaRepository<Booking, Long> {
+
+    
+	Optional<Booking> findByUuidAndUserId(UUID uuid, Long userId);
+    
+	List<Booking> findByEventIdAndStatusIn(
+	        Long eventId,
+	        Collection<BookingStatus> statuses);
 	
     @Query("""
         SELECT b
@@ -72,14 +81,4 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findByUuidAndUserIdFull(
             @Param("bookingId") UUID bookingId, 
             @Param("userId") Long userId);
-    
-    @Query("""
-    	SELECT DISTINCT b
-		FROM Booking b
-		JOIN FETCH b.bookingSeats bs
-		JOIN FETCH bs.eventSeat es
-		WHERE b.uuid = :bookingId
-		  AND b.user.id = :userId
-	""")
-	Optional<Booking> findByUuidAndUserIdWithSeats(UUID bookingId, Long userId);
 }

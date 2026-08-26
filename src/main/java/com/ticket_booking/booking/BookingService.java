@@ -18,10 +18,12 @@ import com.ticket_booking.booking.utils.BookingCursor;
 import com.ticket_booking.booking.utils.BookingCursorParser;
 import com.ticket_booking.booking.utils.BookingMapper;
 import com.ticket_booking.common.CursorPage;
+import com.ticket_booking.common.DomainEventDispatcher;
 import com.ticket_booking.domain.models.Booking;
 import com.ticket_booking.domain.models.BookingSeat;
 import com.ticket_booking.domain.models.Event;
 import com.ticket_booking.domain.models.EventSeat;
+import com.ticket_booking.domain.models.enums.BookingStatus;
 import com.ticket_booking.event.exceptions.EventNotFoundException;
 import com.ticket_booking.event.exceptions.EventSeatNotFoundException;
 import com.ticket_booking.event.repositories.IEventRepository;
@@ -32,12 +34,15 @@ public class BookingService {
 	
 	private final IBookingRepository bookingRepository;
 	private final IEventRepository eventRepository;
+	private final DomainEventDispatcher eventDispatcher;
 	
 	public BookingService(
 			IBookingRepository bookingRepository,
-			IEventRepository eventRepository) {
+			IEventRepository eventRepository,
+			DomainEventDispatcher eventDispatcher) {
 		this.bookingRepository = bookingRepository;
 		this.eventRepository = eventRepository;
+		this.eventDispatcher = eventDispatcher;
 	}
 
 	@Transactional(readOnly = true)
@@ -132,11 +137,36 @@ public class BookingService {
 	
 	@Transactional
 	public void cancelBooking(Long userId, UUID bookingId) {
-		Booking booking = bookingRepository
-				.findByUuidAndUserIdWithSeats(bookingId, userId)
+		Booking booking = bookingRepository.findByUuidAndUserId(bookingId, userId)
 				.orElseThrow(() -> new BookingNotFoundException());
 		
 		booking.cancel();
+		eventDispatcher.publishEventsFor(booking);
+	}
+	
+	@Transactional
+	public void handleEventCancellation(Long eventId) {
+		List<Booking> bookings = bookingRepository
+				.findByEventIdAndStatusIn(
+						eventId,
+						List.of(
+								BookingStatus.PENDING,
+								BookingStatus.CONFIRMED
+						)
+				);
+
+	    for (Booking booking : bookings) {
+	        switch (booking.getStatus()) {
+	            case PENDING -> booking.cancel();
+	            case CONFIRMED -> booking.requestRefund();
+
+	            case CANCELLED,
+	                 REFUND_PENDING,
+	                 REFUNDED -> {
+	                // nothing to do
+	            }
+	        }
+	    }
 	}
 	
 	private List<Booking> findNextPage(
