@@ -55,3 +55,6 @@ databaseChangeLog:
 
   - include:
       file: classpath:db/changelog/migrations/019-event-change-date-to-timestamp.yaml
+
+  - include:
+      file: classpath:db/changelog/migrations/020-refresh-token-add-audit-fields-and-remove-version.yaml

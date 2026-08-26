@@ -3,8 +3,6 @@ package com.ticket_booking.domain.models;
 import java.time.Instant;
 import java.util.Objects;
 
-import jakarta.persistence.Version;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
@@ -25,22 +24,33 @@ public class RefreshToken {
     @SequenceGenerator(name = "refresh_token_seq", sequenceName = "refresh_token_seq_generator")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 512)
+    @Column(nullable = false, unique = true, length = 128)
     private String token;
 
     @Column(nullable = false)
     private Instant expiresAt;
+    
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+    
+    @Column
+    private Instant revokedAt;
 
     @Column(nullable = false)
     private boolean revoked = false;
+
+    @Column
+    private Long replacedByTokenId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     
-    @Version
-    @Column(nullable = false)
-    private Long version;
+    
+    @PrePersist
+    private void onPrePersist() {
+    	this.createdAt = Instant.now();
+    }
 
     
     protected RefreshToken() {}
@@ -68,23 +78,36 @@ public class RefreshToken {
         	);
     }
     
-	public void revoke() {
-		this.revoked = true;
-	}
+    public void revoke(Long replacedByTokenId) {
+    	if (revoked) {
+            throw new IllegalStateException("Token is already revoked");
+        }
+    	
+        this.revoked = true;
+        this.revokedAt = Instant.now();
+        this.replacedByTokenId = replacedByTokenId;
+    }
 	
 	public boolean isExpired(Instant now) {
-		Objects.requireNonNull(now, "now must not be null");
+		Objects.requireNonNull(now);
 		return !this.expiresAt.isAfter(now);
 	}
 	
-	public boolean isUsable(Instant now) {
-		return !revoked && !isExpired(now);
-	}
+	public boolean isWithinGracePeriod(Instant now, long gracePeriodSeconds) {
+		Objects.requireNonNull(now);
 
-    public Long getId() { return this.id; }
+        if (revokedAt == null || gracePeriodSeconds <= 0) {
+            return false;
+        }
+        return now.isBefore(
+        		this.revokedAt.plusSeconds(gracePeriodSeconds));
+    }
+
+	public Long getId() { return this.id; }
     public String getToken() { return this.token; }
     public User getUser() { return this.user; }
     public Instant getExpiresAt() { return this.expiresAt; }
+    public Instant getRevokedAt() { return this.revokedAt; }
     public boolean isRevoked() { return revoked; }
-    public Long getVersion() { return this.version; }
+    public Long getReplacedByTokenId() { return replacedByTokenId; }
 }

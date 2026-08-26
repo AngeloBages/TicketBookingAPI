@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ticket_booking.auth.responses.AuthenticationResponses.AuthResponse;
+import com.ticket_booking.auth.responses.AuthenticationResponses.RefreshTokenResult;
 import com.ticket_booking.common.security.AppUser;
 
 import static com.ticket_booking.auth.commands.AuthenticationCommands.*;
 
 import java.util.HashSet;
 
-import com.ticket_booking.domain.models.RefreshToken;
 import com.ticket_booking.domain.models.User;
 import com.ticket_booking.user.exceptions.EmailAlreadyInUseException;
 import com.ticket_booking.user.repositories.IUserRepository;
@@ -80,12 +80,12 @@ public class AuthService {
 	@Transactional
 	public AuthResponse refresh(String refreshToken) {
 
-		RefreshToken newRefreshToken = refreshTokenService.rotateToken(refreshToken);
+		RefreshTokenResult result = refreshTokenService.rotateToken(refreshToken);
 
-		User user = newRefreshToken.getUser();
+		User user = result.token().getUser();
 		String newAccessToken = jwtService.generateToken(new AppUser(user));
 		
-		return new AuthResponse(newAccessToken, newRefreshToken.getToken());
+		return new AuthResponse(newAccessToken, result.rawToken());
 	}
 	
 	@Transactional
@@ -98,10 +98,10 @@ public class AuthService {
 	    AppUser principal = new AppUser(user);
 
 	    String accessToken = jwtService.generateToken(principal);
-	    RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+	    RefreshTokenResult result = refreshTokenService.createRefreshToken(user);
 
 	    return new AuthResponse(
 	            accessToken,
-	            refreshToken.getToken());
+	            result.rawToken());
 	}
 }

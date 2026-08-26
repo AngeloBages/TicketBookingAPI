@@ -1,0 +1,86 @@
+databaseChangeLog:
+  - changeSet:
+      id: 01-add-refresh-token-audit-fields
+      author: angelo-b
+      changes:
+
+        - addColumn:
+            tableName: refresh_tokens
+            columns:
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+        - update:
+            tableName: refresh_tokens
+            columns:
+              - column:
+                  name: created_at
+                  valueDate: now()
+
+        - addNotNullConstraint:
+            tableName: refresh_tokens
+            columnName: created_at
+            columnDataType: TIMESTAMP WITH TIME ZONE
+
+        - addColumn:
+            tableName: refresh_tokens
+            columns:
+              - column:
+                  name: revoked_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+              - column:
+                  name: replaced_by_token_id
+                  type: BIGINT
+
+        - addForeignKeyConstraint:
+            baseTableName: refresh_tokens
+            baseColumnNames: replaced_by_token_id
+            referencedTableName: refresh_tokens
+            referencedColumnNames: id
+            constraintName: fk_refresh_token_replaced_by
+
+        - createIndex:
+            tableName: refresh_tokens
+            indexName: idx_refresh_tokens_user_revoked
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: revoked
+
+        - dropColumn:
+            tableName: refresh_tokens
+            columnName: version
+
+      rollback:
+        - addColumn:
+            tableName: refresh_tokens
+            columns:
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+        - dropForeignKeyConstraint:
+            baseTableName: refresh_tokens
+            constraintName: fk_refresh_token_replaced_by
+
+        - dropColumn:
+            tableName: refresh_tokens
+            columnName: replaced_by_token_id
+
+        - dropColumn:
+            tableName: refresh_tokens
+            columnName: revoked_at
+
+        - dropColumn:
+            tableName: refresh_tokens
+            columnName: created_at
+
+        - dropIndex:
+              tableName: refresh_tokens
+              indexName: idx_refresh_tokens_user_revoked

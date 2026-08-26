@@ -1,11 +1,12 @@
 package com.ticket_booking.auth;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.Optional;
 
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import com.ticket_booking.auth.exceptions.RefreshTokenExpiredException;
 import com.ticket_booking.auth.exceptions.RefreshTokenNotFoundException;
 import com.ticket_booking.auth.exceptions.RefreshTokenReplayException;
 import com.ticket_booking.auth.repositories.IRefreshTokenRepository;
+import com.ticket_booking.auth.responses.AuthenticationResponses.RefreshTokenResult;
 import com.ticket_booking.common.security.properties.SecurityProperties;
 import com.ticket_booking.domain.models.RefreshToken;
 import com.ticket_booking.domain.models.User;
@@ -33,40 +35,62 @@ public class RefreshTokenService {
     }
     
     @Transactional
-    public RefreshToken rotateToken(String token) {
-    	RefreshToken refreshToken = findByToken(token)
-				.orElseThrow(() -> new RefreshTokenNotFoundException(token));
-				
-        verifyExpiration(refreshToken);
-        refreshToken.revoke();
-        
-        try {
-            return createRefreshToken(refreshToken.getUser());
-        }
-        catch (ObjectOptimisticLockingFailureException ex) {
-            throw new RefreshTokenReplayException(
-                    "Refresh token was already used."
-            );
-        }
-    }
-
-    @Transactional
-    public RefreshToken createRefreshToken(User user) {
-    	String token = generateRefreshToken();
+    public RefreshTokenResult rotateToken(String rawToken) {
+    	String tokenHash = hashToken(rawToken);
+    	RefreshToken refreshToken = findByToken(tokenHash);
     	
-        Instant expiry = Instant.now().plusMillis(securityProperties.refreshTokenExpiration());
+        Instant now = Instant.now();
 
-        RefreshToken refreshToken = RefreshToken.create(token, user, expiry);
-        return refreshTokenRepository.save(refreshToken);
+    	if (refreshToken.isExpired(now)) {
+        	refreshTokenRepository.delete(refreshToken);
+            throw new RefreshTokenExpiredException();
+        }
+    	
+    	if (refreshToken.isRevoked()) {
+    		revokeAllUserTokens(refreshToken.getUser().getId());
+            throw new RefreshTokenReplayException();
+        }
+    	
+    	RefreshTokenResult replacement = createRefreshToken(refreshToken.getUser());
+    	
+    	int updates = refreshTokenRepository.revokeToken(
+    			refreshToken.getId(), 
+    			replacement.token().getId(),
+    			now
+    	);
+		
+		if(updates == 0) {
+			refreshTokenRepository.delete(replacement.token());
+			throw new RefreshTokenNotFoundException();
+		}
+		
+		return replacement;
     }
 
-    public Optional<RefreshToken> findByToken(String token) {
-        return refreshTokenRepository.findByToken(token);
-    }	
+    @Transactional
+    public RefreshTokenResult createRefreshToken(User user) {
+    	String rawToken = generateRandomSecureString();
+    	String tokenHash = hashToken(rawToken);
+    	
+        Instant expiry = Instant.now()
+        		.plusMillis(securityProperties.refreshTokenExpiration());
+
+        RefreshToken refreshToken = RefreshToken.create(
+        		tokenHash, 
+        		user, 
+        		expiry
+        );
+        
+        refreshToken = refreshTokenRepository.save(refreshToken);
+        return new RefreshTokenResult(refreshToken, rawToken);
+    }
 
     @Transactional
-	public void revokeTokenFromUser(Long userId, String token) {
-		int updates = refreshTokenRepository.revokeTokenFromUser(userId, token);
+	public void revokeTokenFromUser(Long userId, String rawToken) {
+    	String tokenHash = hashToken(rawToken);
+    	
+		int updates = refreshTokenRepository
+				.revokeTokenFromUser(userId, tokenHash, Instant.now());
 		
 		if(updates == 0) {
 			throw new RefreshTokenNotFoundException();
@@ -74,22 +98,20 @@ public class RefreshTokenService {
 	}
 
    public void revokeAllUserTokens(Long userId) {
-	   refreshTokenRepository.revokeAllUserTokens(userId);
+	   refreshTokenRepository.revokeAllUserTokens(userId, Instant.now());
    }
-    
-    private void verifyExpiration(RefreshToken token) {
-    	if (token.isRevoked()) {
-    		refreshTokenRepository.revokeAllUserTokens(token.getUser().getId());
-            throw new RefreshTokenReplayException("Replay attack detected for refresh token.");
-        }
 
-        if (token.isExpired(Instant.now())) {
-        	refreshTokenRepository.delete(token);
-            throw new RefreshTokenExpiredException();
-        }
+    public RefreshToken findByToken(String token) {
+        return refreshTokenRepository.findByToken(token)
+        		.orElseThrow(() -> new RefreshTokenNotFoundException(token));
+    }	
+    
+    public RefreshToken findById(Long id) {
+    	return refreshTokenRepository.findById(id)
+    			.orElseThrow(() -> new RefreshTokenNotFoundException());
     }
     
-    private String generateRefreshToken() {
+    private String generateRandomSecureString() {
         byte[] bytes = new byte[64];
         SECURE_RANDOM.nextBytes(bytes);
 
@@ -97,5 +119,17 @@ public class RefreshTokenService {
                 .withoutPadding()
                 .encodeToString(bytes);
     }
-
+    
+    private String hashToken(String rawToken) {
+    	try {
+    		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    		byte[] encodedHash = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
+    		return Base64.getUrlEncoder()
+    				.withoutPadding()
+    				.encodeToString(encodedHash);
+    		
+    	} catch(NoSuchAlgorithmException ex) {
+    		throw new RuntimeException("SHA-256 algorithm not available", ex);
+    	}
+    }
 }
