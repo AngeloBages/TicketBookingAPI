@@ -118,6 +118,7 @@ public class EventService {
 				command.title(), 
 				command.description(),
 				command.startsAt(),
+				command.endsAt(),
 				command.price(), 
 				venue,
 				venue.getActiveSeats()
@@ -134,7 +135,8 @@ public class EventService {
 		
 		event.changeTitle(command.title());
 		event.changeDescription(command.description());
-		event.changeDate(command.startsAt());
+		event.changeStartsAt(command.startsAt());
+		event.changeEndsAt(command.endsAt());
 		event.changePrice(command.price());
 	}
 	
@@ -153,7 +155,7 @@ public class EventService {
 	}
 	
 	@Transactional
-	public void handleBookingCancellation(List<Long> bookingSeatIds) {
+	public void releaseSeatsFromBookinSeats(List<Long> bookingSeatIds) {
 		List<EventSeat> eventSeats = eventRepository
 				.findEventSeatsByBookingSeatsForUpdate(bookingSeatIds);
 		

@@ -1,5 +1,7 @@
 package com.ticket_booking.booking;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,14 +36,17 @@ public class BookingService {
 	
 	private final IBookingRepository bookingRepository;
 	private final IEventRepository eventRepository;
+	private final BookingProperties bookingProperties;
 	private final DomainEventDispatcher eventDispatcher;
 	
 	public BookingService(
 			IBookingRepository bookingRepository,
 			IEventRepository eventRepository,
+			BookingProperties bookingProperties,
 			DomainEventDispatcher eventDispatcher) {
 		this.bookingRepository = bookingRepository;
 		this.eventRepository = eventRepository;
+		this.bookingProperties = bookingProperties;
 		this.eventDispatcher = eventDispatcher;
 	}
 
@@ -123,10 +128,16 @@ public class BookingService {
 	    if (seats.size() != command.seatIds().size()) {
 	        throw new EventSeatNotFoundException();
 	    }
+	    
+	    Instant expiresAt = Instant.now().plus(
+	    		Duration.ofMinutes(
+	    				bookingProperties.expirationMin()
+	    		));
 		
 		Booking booking = Booking.create(
 				command.user(), 
 				event, 
+				expiresAt,
 				seats
 			);
 		
@@ -150,22 +161,26 @@ public class BookingService {
 				.findByEventIdAndStatusIn(
 						eventId,
 						List.of(
-								BookingStatus.PENDING,
-								BookingStatus.CONFIRMED
+								BookingStatus.PENDING
 						)
 				);
 
 	    for (Booking booking : bookings) {
-	        switch (booking.getStatus()) {
-	            case PENDING -> booking.cancel();
-	            case CONFIRMED -> booking.requestRefund();
+	        booking.cancel();
+	    }
+	}
+	
+	@Transactional
+	public void expirePendingBookings(Limit limit) {
+	    Instant now = Instant.now();
 
-	            case CANCELLED,
-	                 REFUND_PENDING,
-	                 REFUNDED -> {
-	                // nothing to do
-	            }
-	        }
+	    List<Booking> bookings =
+	        bookingRepository
+	        	.findPendingBookingsExpiredForUpdate(now, limit);
+
+	    for (Booking booking : bookings) {
+	        booking.expire();
+		    eventDispatcher.publishEventsFor(booking);
 	    }
 	}
 	

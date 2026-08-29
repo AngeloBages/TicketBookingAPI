@@ -30,6 +30,10 @@ public final class EventRequests {
 			LocalDateTime startsAt,
 			
 			@NotNull
+			@Future
+			LocalDateTime endsAt,
+			
+			@NotNull
 			@PositiveOrZero
             @DecimalMax(value = "99999999.99")
             @Digits(integer = 8, fraction = 2)
@@ -51,6 +55,10 @@ public final class EventRequests {
 			@NotNull
 			@Future
 			LocalDateTime startsAt,
+			
+			@NotNull
+			@Future
+			LocalDateTime endsAt,
 			
 			@NotNull
 			@PositiveOrZero

@@ -1,60 +1,66 @@
 databaseChangeLog:
   - include:
-      file: classpath:db/changelog/migrations/001-init.yaml
+      file: db/changelog/migrations/001-init.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/002-refresh-token-add-version.yaml
+      file: db/changelog/migrations/002-refresh-token-add-version.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/003-user-add-timestamps.yaml
+      file: db/changelog/migrations/003-user-add-timestamps.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/004-booking-event-venue-add-uuid.yaml
+      file: db/changelog/migrations/004-booking-event-venue-add-uuid.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/005-seat-change-row-type-to-string.yaml
+      file: db/changelog/migrations/005-seat-change-row-type-to-string.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/006-insert-admin-role.yaml
+      file: db/changelog/migrations/006-insert-admin-role.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/007-user-change-timestamps-to-timestamptz.yaml
+      file: db/changelog/migrations/007-user-change-timestamps-to-timestamptz.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/008-change-refresh-token-user-fk-to-cascade.yaml
+      file: db/changelog/migrations/008-change-refresh-token-user-fk-to-cascade.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/009-rename-refresh-token-expiry-column.yaml
+      file: db/changelog/migrations/009-rename-refresh-token-expiry-column.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/010-change-booking-datetime-to-timestamp.yaml
+      file: db/changelog/migrations/010-change-booking-datetime-to-timestamp.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/011-seat-add-uuid-and-remove-status.yaml
+      file: db/changelog/migrations/011-seat-add-uuid-and-remove-status.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/012-add-venue-and-seat-active-flag.yaml
+      file: db/changelog/migrations/012-add-venue-and-seat-active-flag.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/013-event-add-status.yaml
+      file: db/changelog/migrations/013-event-add-status.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/014-create-event-seat-tables.yaml
+      file: db/changelog/migrations/014-create-event-seat-tables.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/015-remove-booking-seats-table.yaml
+      file: db/changelog/migrations/015-remove-booking-seats-table.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/016-create-booking-seat-table.yaml
+      file: db/changelog/migrations/016-create-booking-seat-table.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/017-booking-create-idx-user-booked-id.yaml
+      file: db/changelog/migrations/017-booking-create-idx-user-booked-id.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/018-venue-add-time-zone.yaml
+      file: db/changelog/migrations/018-venue-add-time-zone.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/019-event-change-date-to-timestamp.yaml
+      file: db/changelog/migrations/019-event-change-date-to-timestamp.yaml
 
   - include:
-      file: classpath:db/changelog/migrations/020-refresh-token-add-audit-fields-and-remove-version.yaml
+      file: db/changelog/migrations/020-refresh-token-add-audit-fields-and-remove-version.yaml
+
+  - include:
+      file: db/changelog/migrations/021-event-change-starts-at-to-datetime-and-add-ends-at.yaml
+
+  - include:
+      file: db/changelog/migrations/022-booking-add-expires-at.yaml

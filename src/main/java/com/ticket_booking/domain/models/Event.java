@@ -1,7 +1,6 @@
 package com.ticket_booking.domain.models;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -57,7 +56,10 @@ public class Event extends AggregateRoot {
     private String description;
 
     @Column(nullable = false)
-    private Instant startsAt;
+    private LocalDateTime startsAt;
+    
+    @Column(nullable = false)
+    private LocalDateTime endsAt;
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
@@ -87,6 +89,7 @@ public class Event extends AggregateRoot {
             EventTitle title,
             EventDescription description,
             LocalDateTime startsAt,
+            LocalDateTime endsAt,
             EventPrice price,
             Venue venue) {
 
@@ -97,13 +100,21 @@ public class Event extends AggregateRoot {
         this.price = price.value();
         this.status = EventStatus.DRAFT;
         this.venue = Objects.requireNonNull(venue);
-        this.startsAt = validateStartsAt(startsAt, venue.getTimeZone());
+        
+        validateEventTimes(
+        		startsAt, 
+        		endsAt, 
+        		venue.getTimeZone());
+        
+        this.startsAt = startsAt;
+        this.endsAt = endsAt;
     }
     
     public static Event create(
             String title,
             String description,
             LocalDateTime startsAt,
+            LocalDateTime endsAt,
             BigDecimal price,
             Venue venue,
             Collection<Seat> seats) {
@@ -112,6 +123,7 @@ public class Event extends AggregateRoot {
                 new EventTitle(title),
                 new EventDescription(description),
                 startsAt,
+                endsAt,
                 new EventPrice(price),
                 venue
     	);
@@ -133,9 +145,26 @@ public class Event extends AggregateRoot {
         this.description = new EventDescription(description).value();
     }
 
-    public void changeDate(LocalDateTime startsAt) {
+    public void changeStartsAt(LocalDateTime startsAt) {
     	ensureDraft();
-        this.startsAt = validateStartsAt(startsAt, this.venue.getTimeZone());
+    	
+    	validateEventTimes(
+        		startsAt, 
+        		this.endsAt, 
+        		this.venue.getTimeZone());
+
+        this.startsAt = startsAt;
+    }
+    
+    public void changeEndsAt(LocalDateTime endsAt) {
+    	ensureDraft();
+
+    	validateEventTimes(
+    			endsAt, 
+        		this.startsAt, 
+        		this.venue.getTimeZone());
+
+        this.endsAt = endsAt;
     }
 
     public void changePrice(BigDecimal price) {
@@ -256,12 +285,20 @@ public class Event extends AggregateRoot {
 		return description;
 	}
 
-	public Instant getStartsAt() {
+	public LocalDateTime getStartsAt() {
 		return startsAt;
+	}
+	
+	public LocalDateTime getEndsAt() {
+		return endsAt;
 	}
 	
 	public ZonedDateTime getStartsAtAtVenue() {
 	    return startsAt.atZone(venue.getTimeZone());
+	}
+
+	public ZonedDateTime getEndsAtAtVenue() {
+	    return endsAt.atZone(venue.getTimeZone());
 	}
 
 	public BigDecimal getPrice() {
@@ -288,30 +325,7 @@ public class Event extends AggregateRoot {
 	    return Collections.unmodifiableList(eventSeats);
 	}
 	
-	private static Instant validateStartsAt(
-	        LocalDateTime startsAt,
-	        ZoneId venueTimeZone) {
-
-	    if (startsAt == null) {
-	        throw new InvalidEventFieldException(
-	                "startsAt",
-	                "is required"
-	        );
-	    }
-
-	    ZonedDateTime zonedStartsAt = startsAt.atZone(venueTimeZone);
-
-	    if (!zonedStartsAt.isAfter(
-	            ZonedDateTime.now(venueTimeZone))) {
-
-	        throw new InvalidEventFieldException(
-	                "startsAt",
-	                "must be in the future"
-	        );
-	    }
-
-	    return zonedStartsAt.toInstant();
-	}
+	
 	private void ensureDraft() {
 	    if (status != EventStatus.DRAFT) {
 	        throw new InvalidEventStateException(
@@ -325,5 +339,43 @@ public class Event extends AggregateRoot {
 	            this.venue.getId(),
 	            seat.getVenueId()
 	    );
+	}
+	
+	private static void validateEventTimes(
+	        LocalDateTime startsAt,
+	        LocalDateTime endsAt,
+	        ZoneId venueTimeZone) {
+
+	    if (startsAt == null) {
+	        throw new InvalidEventFieldException(
+	                "startsAt",
+	                "is required"
+	        );
+	    }
+
+	    if (endsAt == null) {
+	        throw new InvalidEventFieldException(
+	                "endsAt",
+	                "is required"
+	        );
+	    }
+
+	    ZonedDateTime zonedStartsAt = startsAt.atZone(venueTimeZone);
+	    ZonedDateTime zonedEndsAt = endsAt.atZone(venueTimeZone);
+	    ZonedDateTime now = ZonedDateTime.now(venueTimeZone);
+
+	    if (!zonedStartsAt.isAfter(now)) {
+	        throw new InvalidEventFieldException(
+	                "startsAt",
+	                "must be in the future"
+	        );
+	    }
+
+	    if (!zonedEndsAt.isAfter(zonedStartsAt)) {
+	        throw new InvalidEventFieldException(
+	                "endsAt",
+	                "must be after startsAt"
+	        );
+	    }
 	}
 }

@@ -18,6 +18,7 @@ public final class EventResponses {
 		    String title,
 		    String description,
 		    ZonedDateTime startsAt,
+		    ZonedDateTime endsAt,
 		    BigDecimal price,
 		    EventStatus status,
 		    VenueSummaryResponse venue,
@@ -29,6 +30,7 @@ public final class EventResponses {
 		    String title,
 		    String description,
 		    ZonedDateTime startsAt,
+		    ZonedDateTime endsAt,
 		    BigDecimal price,
 		    EventStatus status,
 		    VenueSummaryResponse venue

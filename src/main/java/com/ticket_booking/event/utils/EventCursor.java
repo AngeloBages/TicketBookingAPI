@@ -1,10 +1,10 @@
 package com.ticket_booking.event.utils;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 public record EventCursor(
 
-		Instant eventDateTime,
+		LocalDateTime eventDateTime,
 		long eventId
 ) {
 	

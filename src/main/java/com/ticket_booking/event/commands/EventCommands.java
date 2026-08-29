@@ -12,6 +12,7 @@ public final class EventCommands {
 			String title,
 			String description,
 			LocalDateTime startsAt,
+			LocalDateTime endsAt,
 			BigDecimal price,
 			UUID venueId
 	) {}
@@ -21,6 +22,7 @@ public final class EventCommands {
 			String title,
 			String description,
 			LocalDateTime startsAt,
+			LocalDateTime endsAt,
 			BigDecimal price
 	) {}
 }

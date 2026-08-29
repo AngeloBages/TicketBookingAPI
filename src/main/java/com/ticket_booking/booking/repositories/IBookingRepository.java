@@ -8,12 +8,15 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.ticket_booking.domain.models.Booking;
 import com.ticket_booking.domain.models.BookingSeat;
 import com.ticket_booking.domain.models.enums.BookingStatus;
+
+import jakarta.persistence.LockModeType;
 
 public interface IBookingRepository extends JpaRepository<Booking, Long> {
 
@@ -23,7 +26,34 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
 	List<Booking> findByEventIdAndStatusIn(
 	        Long eventId,
 	        Collection<BookingStatus> statuses);
-	
+
+    @Query("""
+        SELECT DISTINCT b
+        FROM Booking b
+        JOIN FETCH b.event e
+        JOIN FETCH e.venue
+        JOIN FETCH b.bookingSeats bs
+        JOIN FETCH bs.eventSeat es
+        JOIN FETCH es.seat
+        WHERE b.uuid = :bookingId 
+          AND b.user.id = :userId
+    """)
+    Optional<Booking> findByUuidAndUserIdFull(
+            @Param("bookingId") UUID bookingId, 
+            @Param("userId") Long userId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+    	SELECT b
+	    FROM Booking b
+	    WHERE b.status = 'PENDING'
+	      AND b.expiresAt <= :now
+	    ORDER BY b.expiresAt
+    	""")
+    List<Booking> findPendingBookingsExpiredForUpdate(
+    		@Param("now") Instant now, 
+    		Limit limit);
+    
     @Query("""
         SELECT b
         FROM Booking b
@@ -66,19 +96,4 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
     """)
     List<BookingSeat> fetchBookingsSeats(
             @Param("ids") List<Long> ids);
-    
-    @Query("""
-        SELECT DISTINCT b
-        FROM Booking b
-        JOIN FETCH b.event e
-        JOIN FETCH e.venue
-        JOIN FETCH b.bookingSeats bs
-        JOIN FETCH bs.eventSeat es
-        JOIN FETCH es.seat
-        WHERE b.uuid = :bookingId 
-          AND b.user.id = :userId
-    """)
-    Optional<Booking> findByUuidAndUserIdFull(
-            @Param("bookingId") UUID bookingId, 
-            @Param("userId") Long userId);
 }

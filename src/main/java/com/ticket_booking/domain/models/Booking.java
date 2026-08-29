@@ -9,12 +9,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.springframework.data.domain.AbstractAggregateRoot;
-
 import com.ticket_booking.booking.exceptions.DuplicateBookingSeatException;
 import com.ticket_booking.booking.exceptions.EventSeatNotAvailableException;
 import com.ticket_booking.booking.exceptions.InvalidBookingStateException;
 import com.ticket_booking.domain.events.BookingCancelledEvent;
+import com.ticket_booking.domain.events.BookingExpiredEvent;
 import com.ticket_booking.domain.models.enums.BookingStatus;
 
 import jakarta.persistence.CascadeType;
@@ -45,8 +44,11 @@ public class Booking extends AggregateRoot{
 	@Column(unique = true, nullable = false, updatable = false)
     private UUID uuid;
 	
-	@Column(nullable = false)
+	@Column(nullable = false, updatable = false)
 	private Instant bookedAt;
+	
+	@Column
+	private Instant expiresAt;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
@@ -82,12 +84,14 @@ public class Booking extends AggregateRoot{
 	
 	private Booking(
 			User user,
-	        Event event) {
+	        Event event,
+	        Instant expiresAt) {
 		
 		this.uuid = UUID.randomUUID();
 	    
 		this.status = BookingStatus.PENDING;
 	    this.totalPrice = BigDecimal.ZERO;
+	    this.expiresAt = Objects.requireNonNull(expiresAt);;
 		this.user = Objects.requireNonNull(user);
 		this.event = Objects.requireNonNull(event);
 		
@@ -97,11 +101,13 @@ public class Booking extends AggregateRoot{
 	public static Booking create(
 	        User user,
 	        Event event,
+	        Instant expiresAt,
 	        Collection<EventSeat> seats) {
 
 	    Booking booking =  new Booking(
 	    		user,
-	    		event
+	    		event,
+	    		expiresAt
 	    );
 	    
 	    for(EventSeat seat : seats) {
@@ -166,6 +172,11 @@ public class Booking extends AggregateRoot{
 	            throw new InvalidBookingStateException(
 	                "The booking is already cancelled"
 	            );
+	            
+	        case EXPIRED ->
+            throw new InvalidBookingStateException(
+                "The booking is already expired"
+            );
 	
 	        case REFUND_PENDING ->
 	            throw new InvalidBookingStateException(
@@ -178,8 +189,29 @@ public class Booking extends AggregateRoot{
 	            );
 	    }
 		
+		this.expiresAt = null;
+		
 		registerEvent(
 				new BookingCancelledEvent(
+					bookingSeats.stream()
+						.map(BookingSeat::getId)
+						.toList()
+				)
+		);
+	}
+	
+	public void expire() {
+	    if (status != BookingStatus.PENDING) {
+	    	throw new InvalidBookingStateException(
+	                "Only a pending booking can expire"
+	    	);
+	    }
+
+	    this.expiresAt = null;
+	    status = BookingStatus.EXPIRED;
+
+	    registerEvent(
+	    		new BookingExpiredEvent(
 					bookingSeats.stream()
 						.map(BookingSeat::getId)
 						.toList()
@@ -195,6 +227,7 @@ public class Booking extends AggregateRoot{
 	        );
 	    }
 
+	    this.expiresAt = null;
 	    status = BookingStatus.REFUND_PENDING;
 	}
 	
@@ -220,6 +253,10 @@ public class Booking extends AggregateRoot{
 	
 	public Instant getBookedAt() {
 		return bookedAt;
+	}
+	
+	public Instant expiresAt() {
+		return expiresAt;
 	}
 
 	public BigDecimal getTotalPrice() {

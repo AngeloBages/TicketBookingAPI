@@ -88,6 +88,7 @@ public class EventController {
 						request.title(),
 						request.description(),
 						request.startsAt(),
+						request.endsAt(),
 						request.price(),
 						request.venueId()
 				)
@@ -115,6 +116,7 @@ public class EventController {
 						request.title(),
 						request.description(),
 						request.startsAt(),
+						request.endsAt(),
 						request.price()
 				)
 			);

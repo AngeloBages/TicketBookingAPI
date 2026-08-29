@@ -26,6 +26,7 @@ public final class BookingMapper {
 	                    booking.getEvent().getTitle(),
 	                    booking.getEvent().getDescription(),
 	                    booking.getEvent().getStartsAtAtVenue(),
+	                    booking.getEvent().getEndsAtAtVenue(),
 	                    booking.getEvent().getPrice()
 	            ),
 

@@ -1,0 +1,32 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-change-starts-at-to-datetime-and-add-ends-at
+      author: angelo-b
+      changes:
+
+        - modifyDataType:
+            tableName: event
+            columnName: starts_at
+            newDataType: TIMESTAMP WITHOUT TIME ZONE
+
+        - addColumn:
+            tableName: event
+            columns:
+              - column:
+                  name: ends_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+      rollback:
+
+        - modifyDataType:
+            tableName: event
+            columnName: starts_at
+            newDataType: timestamp with time zone
+
+        - dropColumn:
+            tableName: event
+            columnName: ends_at

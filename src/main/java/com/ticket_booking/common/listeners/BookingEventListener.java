@@ -5,14 +5,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.ticket_booking.domain.events.BookingCancelledEvent;
+import com.ticket_booking.domain.events.BookingExpiredEvent;
 import com.ticket_booking.event.EventService;
 
 @Component
-public class BookingCancellationListener {
+public class BookingEventListener {
 
 	private final EventService eventService;
 	
-	public BookingCancellationListener(
+	public BookingEventListener(
 			EventService eventService) {
 		this.eventService = eventService;
 	}
@@ -20,6 +21,12 @@ public class BookingCancellationListener {
 	@Async
 	@TransactionalEventListener
 	public void on(BookingCancelledEvent event) {
-		eventService.handleBookingCancellation(event.bookingSeatIds());
+		eventService.releaseSeatsFromBookinSeats(event.bookingSeatIds());
+	}
+	
+	@Async
+	@TransactionalEventListener
+	public void on(BookingExpiredEvent event) {
+		eventService.releaseSeatsFromBookinSeats(event.bookingSeatIds());
 	}
 }

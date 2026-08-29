@@ -1,0 +1,25 @@
+databaseChangeLog:
+
+    - changeSet:
+        id: 01-add-booking-expires-at
+        author: angelo-b
+        changes:
+
+            - addColumn:
+                tableName: booking
+                columns:
+                   - column:
+                       name: expires_at
+                       type: TIMESTAMP WITH TIME ZONE
+
+            - sql: 
+                sql: |
+                  UPDATE booking 
+                  SET expires_at = CURRENT_TIMESTAMP + INTERVAL '15 minutes' 
+                  WHERE expires_at IS NULL AND status = 'PENDING';
+
+        rollback:
+
+            - dropColumn:
+                tableName: booking
+                columnName: expires_at

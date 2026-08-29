@@ -18,6 +18,7 @@ public final class EventMapper {
 	            event.getTitle(),
 	            event.getDescription(),
 	            event.getStartsAtAtVenue(),
+	            event.getEndsAtAtVenue(),
 	            event.getPrice(),
 	            event.getStatus(),
 	            
@@ -37,6 +38,7 @@ public final class EventMapper {
 	            event.getTitle(),
 	            event.getDescription(),
 	            event.getStartsAtAtVenue(),
+	            event.getEndsAtAtVenue(),
 	            event.getPrice(),
 	            event.getStatus(),
 	            

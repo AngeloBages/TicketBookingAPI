@@ -27,6 +27,7 @@ public final class BookingResponses {
 		    String title,
 		    String description,
 		    ZonedDateTime startsAt,
+		    ZonedDateTime endsAt,
 		    BigDecimal price
 	) {}
 	
