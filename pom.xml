@@ -72,6 +72,18 @@
 	    </dependency>
 	    
 	    <dependency>
+		    <groupId>com.stripe</groupId>
+		    <artifactId>stripe-java</artifactId>
+		    <version>33.4.0</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>com.google.code.gson</groupId>
+		    <artifactId>gson</artifactId>
+		    <scope>compile</scope>
+		</dependency>
+	    
+	    <dependency>
 		    <groupId>org.springdoc</groupId>
 		    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 		    <version>3.0.2</version>
