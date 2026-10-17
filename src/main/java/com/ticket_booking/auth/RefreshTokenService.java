@@ -73,7 +73,7 @@ public class RefreshTokenService {
     	String tokenHash = hashToken(rawToken);
     	
         Instant expiry = Instant.now()
-        		.plusMillis(securityProperties.refreshTokenExpiration());
+        		.plus(securityProperties.refreshTokenExpiration());
 
         RefreshToken refreshToken = RefreshToken.create(
         		tokenHash, 

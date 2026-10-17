@@ -71,12 +71,14 @@ public class JwtService {
 				.toList());
 		
 		long now = System.currentTimeMillis();
+		long expirationTime = 
+				now + securityProperties.accessTokenExpiration().toMillis();
 		
 		return Jwts.builder()
 				.claims(claims)
 				.subject(userDetails.getUsername())
 				.issuedAt(new Date(now))
-				.expiration(new Date(now + securityProperties.accessTokenExpiration()))
+				.expiration(new Date(expirationTime))
 				.signWith(getSigningKey())
 				.compact();
 	}
