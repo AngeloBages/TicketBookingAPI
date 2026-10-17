@@ -29,6 +29,6 @@ import io.swagger.v3.oas.annotations.servers.Server;
 		@SecurityRequirement(name = "Bearer Authentication")
 	}
 )
-public class OpenApiConfiguration {
+public class OpenApiConfig {
 
 }
