@@ -2,11 +2,14 @@ package com.ticket_booking.common;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -138,11 +141,45 @@ public class GlobalExceptionHandler {
                 "The request body is malformed.",
                 request);
     }
+    
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ProblemDetail> handleHandlerMethodValidationException(
+            HandlerMethodValidationException ex,
+            HttpServletRequest request) {
 
-    @ExceptionHandler({
-    	MethodArgumentNotValidException.class,
-    	HandlerMethodValidationException.class})
-    public ResponseEntity<ProblemDetail> handleInvalidMethodArgumentException(
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed.");
+
+        problem.setTitle("Bad Request");
+        problem.setProperty("timestamp", OffsetDateTime.now());
+        problem.setProperty("path", request.getRequestURI());
+
+        Map<String, List<String>> errors = 
+        		ex.getParameterValidationResults()
+        			.stream()
+	                .collect(Collectors.toMap(
+	                        result -> {
+	                            String paramName = result.getMethodParameter().getParameterName();
+	                            return paramName != null ? paramName : "parameter";
+	                        },
+	                        result -> result.getResolvableErrors()
+	                        		.stream()
+	                                .map(MessageSourceResolvable::getDefaultMessage)
+	                                .filter(Objects::nonNull)
+	                                .toList(),
+	                        (paramName, errorMessage) -> paramName
+                ));
+
+        problem.setProperty("invalid_fields", errors);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(problem);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ProblemDetail> handleMethodArgumentNotValidException(
     		MethodArgumentNotValidException ex,
             HttpServletRequest request) {
     	

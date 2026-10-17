@@ -12,6 +12,7 @@ public final class BookingCommands {
 	public record CreateBookingCommand(
 			User user,
 			UUID eventId,
-			List<UUID> seatIds
+			List<UUID> seatIds,
+			String idempotencyKey
 	) {}
 }

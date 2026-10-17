@@ -1,0 +1,92 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-create-idempotency-record-table
+      author: angelo-b
+      changes:
+
+        - createSequence:
+            sequenceName: idempotency_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+        - createTable:
+            tableName: idempotency_record
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  defaultValueSequenceNext: idempotency_seq_generator
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_idempotency_record
+                    nullable: false
+
+              - column:
+                  name: operation
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: identity_id
+                  type: VARCHAR(255)
+
+              - column:
+                  name: idempotency_key
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: request_hash
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: response_body
+                  type: TEXT
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: completed_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+        - addUniqueConstraint:
+            tableName: idempotency_record
+            columnNames: operation, idempotency_key
+            constraintName: uk_idempotency_operation_key
+
+        - createIndex:
+            tableName: idempotency_record
+            indexName: ix_idempotency_expires_at
+            columns:
+              - column:
+                  name: expires_at
+
+      rollback:
+        - dropTable:
+            tableName: idempotency_record
+            cascadeConstraints: true
+
+        - dropSequence:
+            sequenceName: idempotency_seq_generator

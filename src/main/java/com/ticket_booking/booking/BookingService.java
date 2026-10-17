@@ -26,9 +26,11 @@ import com.ticket_booking.domain.models.BookingSeat;
 import com.ticket_booking.domain.models.Event;
 import com.ticket_booking.domain.models.EventSeat;
 import com.ticket_booking.domain.models.enums.BookingStatus;
+import com.ticket_booking.domain.models.enums.IdempotencyOperation;
 import com.ticket_booking.event.exceptions.EventNotFoundException;
 import com.ticket_booking.event.exceptions.EventSeatNotFoundException;
 import com.ticket_booking.event.repositories.IEventRepository;
+import com.ticket_booking.idempotency.Idempotent;
 
 
 @Service
@@ -112,6 +114,12 @@ public class BookingService {
 		return BookingMapper.toResponse(booking, booking.getBookingSeats());
 	}
 	
+	@Idempotent(
+		operation = IdempotencyOperation.BOOKING_CREATE,
+		key = "#command.idempotencyKey", 
+		identityId = "#command.user.id",
+		fingerprint = "{#command.eventId, #command.seatIds}"
+	)
 	@Transactional
 	public UUID createBooking(CreateBookingCommand command) {
 		
