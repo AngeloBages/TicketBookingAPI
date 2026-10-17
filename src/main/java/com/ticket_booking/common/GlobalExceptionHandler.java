@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import com.ticket_booking.common.exceptions.DomainException;
+import com.ticket_booking.common.exceptions.IntegrationException;
+import com.ticket_booking.common.exceptions.IntegrationExceptionUtils;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -179,6 +181,54 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request);
     }
+    
+    @ExceptionHandler(IntegrationException.class)
+    public ResponseEntity<ProblemDetail> handleIntegrationException(
+            IntegrationException ex,
+            HttpServletRequest request) {
+
+    	HttpStatus httpStatus = toHttpStatus(ex);
+    	
+    	String message = """
+                Integration failure service={}  failureType={} outcome={}  \
+                errorCode={} providerStatus={} errorMessage={}
+                """.strip();
+
+    	IntegrationExceptionUtils.logFailure(
+    			log, 
+    			message, 
+    			ex,
+    			ex.getServiceName(),
+                ex.getFailureType(),
+                ex.getOutcome(),
+                ex.getErrorCode(),
+                ex.getProviderStatusCode(),
+                ex.getMessage()
+    	);
+    	
+    	String safeMessage = 
+    			IntegrationExceptionUtils
+    				.getSafeFailureMessage(
+    						ex.getFailureType(), 
+    						ex.getOutcome(),
+    						ex.getServiceName()
+    				);
+
+        ProblemDetail problem =
+                ProblemDetail.forStatusAndDetail(
+                        httpStatus,
+                        safeMessage
+                );
+
+        problem.setTitle("External Service Error");
+        problem.setProperty("timestamp", OffsetDateTime.now());
+        problem.setProperty("path", request.getRequestURI());
+        problem.setProperty("service_name", ex.getServiceName());
+
+        return ResponseEntity
+                .status(httpStatus)
+                .body(problem);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> handleUnexpected(
@@ -194,7 +244,7 @@ public class GlobalExceptionHandler {
                 request);
     }
     
-    private ResponseEntity<ProblemDetail> problem(
+    private static ResponseEntity<ProblemDetail> problem(
             HttpStatus status,
             String title,
             String detail,
@@ -207,5 +257,26 @@ public class GlobalExceptionHandler {
         problem.setProperty("path", request.getRequestURI());
 
         return ResponseEntity.status(status).body(problem);
+    }
+    
+    private static HttpStatus toHttpStatus(
+            IntegrationException ex) {
+
+        return switch (ex.getFailureType()) {
+
+            case INVALID_REQUEST ->
+                    HttpStatus.BAD_REQUEST;
+
+            case AUTHENTICATION,
+                 AUTHORIZATION,
+                 NOT_FOUND,
+                 PROVIDER_ERROR,
+                 TRANSPORT_ERROR,
+                 TIMEOUT,
+                 RATE_LIMITED,
+                 PAYMENT_FAILED,
+                 UNKNOWN ->
+                    HttpStatus.BAD_GATEWAY;
+        };
     }
 }
