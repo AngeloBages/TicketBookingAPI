@@ -77,6 +77,7 @@ public class SecurityConfig {
 				    .requestMatchers("/api/public/**").permitAll()
 				    .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
 				    .requestMatchers(HttpMethod.GET, "/api/venues/**").permitAll()
+				    .requestMatchers(HttpMethod.POST, "/api/payments/*/webhook").permitAll()
 
 				    // Admin endpoints
 				    .requestMatchers(HttpMethod.POST, "/api/events").hasRole("ADMIN")
