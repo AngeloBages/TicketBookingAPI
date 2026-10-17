@@ -67,3 +67,12 @@ databaseChangeLog:
 
   - include:
       file: db/changelog/migrations/023-create-idempotency-record-table.yaml
+
+  - include:
+      file: db/changelog/migrations/024-create-payment-table.yaml
+
+  - include:
+      file: db/changelog/migrations/025-create-payment-event-table.yaml
+
+  - include:
+      file: db/changelog/migrations/026-create-payment-refund-table.yaml

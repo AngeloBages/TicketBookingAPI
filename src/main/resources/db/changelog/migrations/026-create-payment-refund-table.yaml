@@ -1,0 +1,108 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: create-payment-refund
+      author: angelo-b
+      changes:
+
+        - createSequence:
+            sequenceName: payment_refund_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+        - createTable:
+            tableName: payment_refund
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  defaultValueSequenceNext: payment_refund_seq_generator
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_payment_refund
+                    nullable: false
+
+              - column:
+                  name: uuid
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_payment_refund_uuid
+
+              - column:
+                  name: provider
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: provider_refund_id
+                  type: VARCHAR(225)
+
+              - column:
+                  name: amount
+                  type: NUMERIC(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: currency
+                  type: VARCHAR(3)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: failure_code
+                  type: VARCHAR(100)
+
+              - column:
+                  name: failure_message
+                  type: VARCHAR(500)
+
+              - column:
+                  name: reconciliation_claimed_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+              - column:
+                  name: payment_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: payment_refund
+            columnNames: provider, provider_refund_id
+            constraintName: uk_refund_provider_provider_refund_id
+
+        - addForeignKeyConstraint:
+            baseTableName: payment_refund
+            baseColumnNames: payment_id
+            referencedTableName: payment
+            referencedColumnNames: id
+            constraintName: fk_payment_refund_payment
+
+      rollback:
+        - dropTable:
+            tableName: payment_refund
+            cascadeConstraints: true
+
+        - dropSequence:
+            sequenceName: payment_refund_seq_generator

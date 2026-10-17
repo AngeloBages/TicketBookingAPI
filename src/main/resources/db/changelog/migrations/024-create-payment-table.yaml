@@ -1,0 +1,114 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-create-payment-table
+      author: angelo-b
+      changes:
+
+        - createSequence:
+            sequenceName: payment_seq_generator
+            startValue: 1
+            incrementBy: 50
+
+        - createTable:
+            tableName: payment
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGINT
+                  defaultValueSequenceNext: payment_seq_generator
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_payment
+                    nullable: false
+
+              - column:
+                  name: uuid
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_payment_uuid
+
+              - column:
+                  name: amount
+                  type: NUMERIC(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: currency
+                  type: VARCHAR(3)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: provider
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: provider_payment_id
+                  type: VARCHAR(225)
+
+              - column:
+                  name: provider_checkout_session_id
+                  type: VARCHAR(225)
+
+              - column:
+                  name: failure_code
+                  type: VARCHAR(100)
+
+              - column:
+                  name: failure_message
+                  type: VARCHAR(500)
+
+              - column:
+                  name: reconciliation_claimed_at
+                  type: TIMESTAMP WITH TIME ZONE
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: booking_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: payment
+            columnNames: provider, provider_payment_id
+            constraintName: uk_provider_provider_payment_id
+
+        - addForeignKeyConstraint:
+            baseTableName: payment
+            baseColumnNames: booking_id
+            referencedTableName: booking
+            referencedColumnNames: id
+            constraintName: fk_payment_booking
+
+      rollback:
+        - dropTable:
+            tableName: payment
+            cascadeConstraints: true
+
+        - dropSequence:
+            sequenceName: payment_seq_generator
