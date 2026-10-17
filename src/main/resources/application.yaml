@@ -1,0 +1,140 @@
+spring:
+  application:
+    name: ticket-booking-app
+  threads:
+    virtual:
+      enabled: true
+  security:
+    user:
+      name: ${SECURITY_USER_NAME}
+      password: ${SECURITY_USER_PASSWORD}
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ticket_booking_db
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    show-summary: summary
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+app:
+
+  security:
+    jwt-secret: ${SECURITY_SECRET}
+    access-token-expiration: ${ACCESS_TOKEN_EXPIRATION}
+    refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION}
+
+  admin:
+    name: Administrator
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+
+  booking:
+    expiration-min: ${BOOKING_EXPIRATION_MIN}
+    expiration:
+      fixed-rate: ${BOOKING_EXPIRATION_JOB_FIXED_RATE}
+      batch-size: ${BOOKING_EXPIRATION_JOB_BATCH_SIZE}
+    cancellation:
+      batch-size: ${BOOKING_CANCELATION_BATCH_SIZE}
+
+  payment:
+    currency: ${PAYMENT_CURRENCY}
+    provider-name: ${PAYMENT_PROVIDER_NAME}
+    reconciliation:
+      fixed-delay: ${PAYMENT_RECONCILIATION_JOB_FIXED_DELAY}
+      stale-after: ${PAYMENT_RECONCILIATION_JOB_STALE_AFTER}
+      claim-timeout: ${PAYMENT_RECONCILIATION_JOB_CLAIM_TIMEOUT}
+      batch-size: ${PAYMENT_RECONCILIATION_JOB_BATCH_SIZE}
+    pending-recovery:
+      fixed-delay: ${PAYMENT_PENDING_RECOVERY_JOB_FIXED_DELAY}
+      stale-after: ${PAYMENT_PENDING_RECOVERY_JOB_STALE_AFTER}
+      claim-timeout: ${PAYMENT_PENDING_RECOVERY_JOB_CLAIM_TIMEOUT}
+      batch-size: ${PAYMENT_PENDING_RECOVERY_JOB_BATCH_SIZE}
+
+    refund:
+      reconciliation:
+        fixed-delay: ${REFUND_RECONCILIATION_JOB_FIXED_DELAY}
+        claim-timeout: ${REFUND_RECONCILIATION_JOB_CLAIM_TIMEOUT}
+        batch-size: ${REFUND_RECONCILIATION_JOB_BATCH_SIZE}
+      pending-recovery:
+        fixed-delay: ${REFUND_PENDING_RECOVERY_JOB_FIXED_DELAY}
+        stale-after: ${REFUND_PENDING_RECOVERY_JOB_STALE_AFTER}
+        claim-timeout: ${REFUND_PENDING_RECOVERY_JOB_CLAIM_TIMEOUT}
+        batch-size: ${REFUND_PENDING_RECOVERY_JOB_BATCH_SIZE}
+
+    webhook:
+      recovery:
+        fixed-delay: ${PAYMENT_WEBHOOK_RECOVERY_JOB_FIXED_DELAY}
+      processing:
+        fixed-delay: ${PAYMENT_WEBHOOK_PROCESSING_JOB_FIXED_DELAY}
+        batch-size: ${PAYMENT_WEBHOOK_PROCESSING_JOB_BATCH_SIZE}
+      stale-after: ${PAYMENT_WEBHOOK_STALE_AFTER}
+
+    provider:
+      retry:
+        max-retries: 5
+        delay: 250ms
+        jitter: 100ms
+        multiplier: 2
+        max-delay: 2s
+      concurrency-limit: 20
+
+    stripe:
+      secret-key: ${STRIPE_SECRET_KEY}
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+      success-url: ${STRIPE_SUCCESS_URL}
+      cancel-url: ${STRIPE_CANCEL_URL}
+
+  idempotency:
+    expiration-min: ${IDEMPOTENCY_EXPIRATION_MIN}
+    expiration:
+      cron: ${IDEMPOTENCY_EXPIRATION_CRON}
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  observations:
+    annotations:
+      enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY}
+    export:
+      otlp:
+        enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
+
+logging:
+   file:
+     name: ${LOGGING_FILE_PATH}
+   structured:
+     format:
+       file: logstash
+   logback:
+     rollingpolicy:
+       max-file-size: 50MB
+       max-history: 14
+       total-size-cap: 1GB
+#  level:
+#    org.springframework.boot: DEBUG
+#    org.springframework.web: DEBUG

@@ -1,0 +1,82 @@
+{"properties": [
+  {
+    "name": "app.booking.expiration.fixed-rate",
+    "type": "java.lang.String",
+    "description": "A description for 'app.booking.expiration.fixed-rate'"
+  },
+  {
+    "name": "app.payment.reconciliation.fixed-delay",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.reconciliation.fixed-delay'"
+  },
+  {
+    "name": "app.payment.pending-recovery.fixed-delay",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.pending-recovery.fixed-delay'"
+  },
+  {
+    "name": "app.payment.refund.reconciliation.fixed-delay",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.refund.reconciliation.fixed-delay'"
+  },
+  {
+    "name": "app.payment.refund.pending-recovery.fixed-delay",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.refund.pending-recovery.fixed-delay'"
+  },
+  {
+    "name": "app.payment.provider.retry.max-retries",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.provider.retry.max-retries'"
+  },
+  {
+    "name": "app.payment.provider.retry.delay",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.provider.retry.delay'"
+  },
+  {
+    "name": "app.payment.provider.retry.jitter",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.provider.retry.jitter'"
+  },
+  {
+    "name": "app.payment.provider.retry.multiplier",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.provider.retry.multiplier'"
+  },
+  {
+    "name": "app.payment.provider.retry.max-delay",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.provider.retry.max-delay'"
+  },
+  {
+    "name": "app.payment.provider.concurrency-limit",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.provider.concurrency-limit'"
+  },
+  {
+    "name": "app.idempotency.expiration.cron",
+    "type": "java.lang.String",
+    "description": "A description for 'app.idempotency.expiration.cron'"
+  },
+  {
+    "name": "app.payment.reconciliation.stale-after",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.reconciliation.stale-after'"
+  },
+  {
+    "name": "app.payment.reconciliation.cron",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.reconciliation.cron'"
+  },
+  {
+    "name": "app.payment.webhook.recovery.fixed-delay",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.webhook.recovery.fixed-delay'"
+  },
+  {
+    "name": "app.payment.webhook.processing.fixed-delay",
+    "type": "java.lang.String",
+    "description": "A description for 'app.payment.webhook.processing.fixed-delay'"
+  }
+]}
