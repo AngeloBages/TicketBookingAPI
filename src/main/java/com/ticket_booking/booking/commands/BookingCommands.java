@@ -15,4 +15,16 @@ public final class BookingCommands {
 			List<UUID> seatIds,
 			String idempotencyKey
 	) {}
+	
+	public record PayBookingCommand(
+			Long userId,
+			UUID bookingId,
+			String idempotencyKey
+	) {}
+	
+	public record RefundBookingCommand(
+			Long userId,
+			UUID bookingId,
+			String idempotencyKey
+	) {}
 }

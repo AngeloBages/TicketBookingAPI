@@ -48,6 +48,19 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
             @Param("bookingId") UUID bookingId, 
             @Param("userId") Long userId);
     
+    @Query("""
+    	SELECT DISTINCT b
+        FROM Booking b
+    	JOIN FETCH b.event e
+    	JOIN FETCH e.venue v
+    	LEFT JOIN FETCH b.bookingSeats bs
+    	LEFT JOIN FETCH bs.eventSeat es
+    	LEFT JOIN FETCH es.seat s
+    	WHERE b.id = :id
+    """)
+    Optional<Booking> findByIdWithDescriptionAssociations(
+    		@Param("id") Long id);
+    
     @Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("""
 		SELECT b
@@ -55,6 +68,16 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
 		WHERE b.id = :id
 	""")
 	Optional<Booking> findByIdForUpdate(@Param("id") Long id);
+	
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("""
+		SELECT b
+		FROM Booking b
+		WHERE b.uuid = :uuid
+		  AND b.user.id = :userId
+	""")
+	Optional<Booking> findByUuidAndUserIdForUpdate(
+			@Param("uuid") UUID uuid, @Param("userId") Long userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
@@ -67,7 +90,15 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findPendingBookingsExpiredForUpdate(
     		@Param("now") Instant now, 
     		Limit limit);
-    
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("""
+		SELECT p.booking
+		FROM Payment p
+		WHERE p.id = :paymentId
+	""")
+	Optional<Booking> findByPaymentIdForUpdate(@Param("paymentId") Long paymentId);
+
     @Query("""
         SELECT b
         FROM Booking b

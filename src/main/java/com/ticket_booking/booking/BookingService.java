@@ -13,10 +13,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ticket_booking.booking.commands.BookingCommands.CreateBookingCommand;
+import com.ticket_booking.booking.commands.BookingCommands.PayBookingCommand;
+import com.ticket_booking.booking.commands.BookingCommands.RefundBookingCommand;
 import com.ticket_booking.booking.exceptions.BookingNotFoundException;
 import com.ticket_booking.booking.repositories.IBookingRepository;
 import com.ticket_booking.booking.responses.BookingResponses.BookingConfirmationResult;
 import com.ticket_booking.booking.responses.BookingResponses.BookingResponse;
+import com.ticket_booking.booking.responses.BookingResponses.PayBookingResponse;
+import com.ticket_booking.booking.responses.BookingResponses.RefundBookingResponse;
 import com.ticket_booking.booking.utils.BookingCursor;
 import com.ticket_booking.booking.utils.BookingCursorParser;
 import com.ticket_booking.booking.utils.BookingMapper;
@@ -32,6 +36,9 @@ import com.ticket_booking.event.exceptions.EventNotFoundException;
 import com.ticket_booking.event.exceptions.EventSeatNotFoundException;
 import com.ticket_booking.event.repositories.IEventRepository;
 import com.ticket_booking.idempotency.Idempotent;
+import com.ticket_booking.payment.PaymentOrchestrator;
+import com.ticket_booking.payment.commands.PaymentCommands.CreatePaymentCommand;
+import com.ticket_booking.payment.commands.PaymentCommands.RefundPaymentCommand;
 
 import io.micrometer.observation.annotation.Observed;
 
@@ -43,6 +50,7 @@ public class BookingService {
 	private final IEventRepository eventRepository;
 	private final BookingProperties bookingProperties;
 	private final EventService eventService;
+	private final PaymentOrchestrator paymentOrchestrator;
 	private final DomainEventDispatcher dispatcher;
 	
 	public BookingService(
@@ -50,11 +58,13 @@ public class BookingService {
 			IEventRepository eventRepository,
 			BookingProperties bookingProperties,
 			EventService eventService,
+			PaymentOrchestrator paymentOrchestrator,
 			DomainEventDispatcher dispatcher) {
 		this.bookingRepository = bookingRepository;
 		this.eventRepository = eventRepository;
 		this.bookingProperties = bookingProperties;
 		this.eventService = eventService;
+		this.paymentOrchestrator = paymentOrchestrator;
 		this.dispatcher = dispatcher;
 	}
 
@@ -227,6 +237,56 @@ public class BookingService {
 	    dispatcher.publishEventsFor(booking);
 		
 		return BookingConfirmationResult.BOOKING_CONFIRMED;
+	}
+	
+	@Idempotent(
+            operation = IdempotencyOperation.PAYMENT_CREATE,
+            key = "#command.idempotencyKey()",
+            identityId = "#command.userId()",
+            fingerprint = "#command.bookingId()"
+    )
+	public PayBookingResponse payForBooking(PayBookingCommand command) {
+		
+		var result = paymentOrchestrator.createPayment(
+				new CreatePaymentCommand(
+						command.userId(),
+						command.bookingId()
+				)
+		);
+
+		return new PayBookingResponse(
+				result.paymentUuid(),
+				result.returnUrl()
+		);
+	}
+	
+	@Idempotent(
+            operation = IdempotencyOperation.REFUND_CREATE,
+            key = "#command.idempotencyKey()",
+            identityId = "#command.userId()",
+            fingerprint = "#command.bookingId()"
+    )
+	public RefundBookingResponse requestBookingRefund(RefundBookingCommand command) {
+		var result = paymentOrchestrator.refundPayment(
+				new RefundPaymentCommand(
+						command.userId(),
+						command.bookingId()
+				)
+		);
+
+		return new RefundBookingResponse(
+				result.refundUuid(),
+				result.status()
+		);
+	}
+	
+	public RefundBookingResponse requestBookingRefund(Long paymentId) {
+		var result = paymentOrchestrator.refundPayment(paymentId);
+
+		return new RefundBookingResponse(
+				result.refundUuid(),
+				result.status()
+		);
 	}
 	
 	@Transactional

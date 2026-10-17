@@ -17,8 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.ticket_booking.booking.commands.BookingCommands.CreateBookingCommand;
+import com.ticket_booking.booking.commands.BookingCommands.PayBookingCommand;
+import com.ticket_booking.booking.commands.BookingCommands.RefundBookingCommand;
 import com.ticket_booking.booking.requests.BookingRequests.CreateBookingRequest;
 import com.ticket_booking.booking.responses.BookingResponses.BookingResponse;
+import com.ticket_booking.booking.responses.BookingResponses.PayBookingResponse;
+import com.ticket_booking.booking.responses.BookingResponses.RefundBookingResponse;
 import com.ticket_booking.common.CursorPage;
 import com.ticket_booking.common.security.AppUser;
 import com.ticket_booking.common.web.HttpHeaders;
@@ -108,5 +112,45 @@ public class BookingController {
 		bookingService.cancelBooking(userId, bookingId);
 		
 		return ResponseEntity.noContent().build();
+	}
+	
+	@PostMapping("/{id}/pay")
+	@Operation(summary = "Creates a payment for a booking")
+	public PayBookingResponse createPayment(
+			@AuthenticationPrincipal(expression = "user.id") Long userId,
+			
+			@NotBlank @Size(max = 255) 
+			@RequestHeader(HttpHeaders.IDEMPOTENCY_KEY) String idempotencyKey,
+			
+			@PathVariable UUID id){
+
+		return bookingService.payForBooking(
+				new PayBookingCommand(
+					userId,
+					id, 
+					idempotencyKey
+				)
+		);
+	}
+	
+	@PostMapping("/{id}/refund")
+	@Operation(summary = "Requests a refund for a booking")
+	public ResponseEntity<RefundBookingResponse> requestRefund(
+			@AuthenticationPrincipal(expression = "user.id") Long userId,
+			
+			@NotBlank @Size(max = 255) 
+			@RequestHeader(HttpHeaders.IDEMPOTENCY_KEY) String idempotencyKey,
+			
+			@PathVariable UUID id){
+		
+		var response = bookingService.requestBookingRefund(
+				new RefundBookingCommand(
+						userId,
+						id, 
+						idempotencyKey
+					)
+				);
+
+		return ResponseEntity.accepted().body(response);
 	}
 }
