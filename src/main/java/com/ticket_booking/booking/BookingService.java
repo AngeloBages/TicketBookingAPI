@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ticket_booking.booking.commands.BookingCommands.CreateBookingCommand;
 import com.ticket_booking.booking.exceptions.BookingNotFoundException;
 import com.ticket_booking.booking.repositories.IBookingRepository;
+import com.ticket_booking.booking.responses.BookingResponses.BookingConfirmationResult;
 import com.ticket_booking.booking.responses.BookingResponses.BookingResponse;
 import com.ticket_booking.booking.utils.BookingCursor;
 import com.ticket_booking.booking.utils.BookingCursorParser;
@@ -204,11 +205,48 @@ public class BookingService {
 	    dispatcher.publishEventsFor(booking);
 	}
 	
+	@Observed(
+        name = "booking.confirm",
+        contextualName = "confirm-booking"
+    )
 	@Transactional
+	public BookingConfirmationResult confirmBooking(Long bookingId) {
+		Booking booking = findBookingForUpdate(bookingId);
+		
+		if(booking.isExpired(Instant.now()) ||
+				booking.isCancelled()) {
+			return BookingConfirmationResult.REFUND_REQUIRED;
+		}
+		
+		booking.confirm();
+		
+		eventService.bookSeats(
+				booking.getBookingSeatsIds()
+		);
+		
+	    dispatcher.publishEventsFor(booking);
+		
+		return BookingConfirmationResult.BOOKING_CONFIRMED;
+	}
+	
+	@Transactional
+	public void handleSuccessfulRefund(Long bookingId) {
+		Booking booking = findBookingForUpdate(bookingId);
+
+		if(booking.isConfirmed()) {
+			booking.markRefunded();
+			
+			eventService.releaseSeats(
+					booking.getBookingSeatsIds()
+			);
+		}
+	}
+	
 	@Observed(
 	    name = "booking.expire.batch",
 	    contextualName = "expire-pending-bookings"
 	)
+	@Transactional
 	public int expirePendingBookings(Limit limit) {
 	    Instant now = Instant.now();
 

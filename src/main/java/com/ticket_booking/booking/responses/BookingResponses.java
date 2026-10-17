@@ -43,4 +43,13 @@ public final class BookingResponses {
 	        String row,
 	        BigDecimal price
 	) {}
+	
+	public enum BookingConfirmationResult {
+		BOOKING_CONFIRMED,
+		REFUND_REQUIRED;
+		
+		public boolean requiresRefund() {
+			return this == REFUND_REQUIRED;
+		}
+	}
 }

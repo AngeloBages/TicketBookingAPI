@@ -167,6 +167,20 @@ public class EventService {
 			es.release();
 		}
 	}
+	
+	@Transactional
+	public void bookSeats(List<Long> bookingSeatIds) {
+		List<EventSeat> eventSeats = eventRepository
+				.findEventSeatsByBookingSeats(bookingSeatIds);
+		
+		if (eventSeats.size() != bookingSeatIds.size()) {
+	        throw new EventSeatNotFoundException();
+	    }
+		
+		for(EventSeat es : eventSeats) {
+			es.book();
+		}
+	}
 
     private String createCursor(Event event) {
 

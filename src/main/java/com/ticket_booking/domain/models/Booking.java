@@ -9,10 +9,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.ticket_booking.booking.exceptions.BookingAlreadyExpiredException;
 import com.ticket_booking.booking.exceptions.DuplicateBookingSeatException;
 import com.ticket_booking.booking.exceptions.EventSeatNotAvailableException;
 import com.ticket_booking.booking.exceptions.InvalidBookingStateException;
 import com.ticket_booking.domain.events.booking.BookingCanceledEvent;
+import com.ticket_booking.domain.events.booking.BookingConfirmedEvent;
 import com.ticket_booking.domain.events.booking.BookingExpiredEvent;
 import com.ticket_booking.domain.models.enums.BookingStatus;
 
@@ -189,28 +191,58 @@ public class Booking extends AggregateRoot{
 		);
 	}
 	
-	public void requestRefund() {
-
-	    if (status != BookingStatus.CONFIRMED) {
+	public void confirm() {		
+		if (status != BookingStatus.PENDING) {
 	        throw new InvalidBookingStateException(
-	                "Only a confirmed booking can be refunded"
+	        		"Booking cannot be confirmed from status: " + status
 	        );
 	    }
-
-	    this.expiresAt = null;
-	    status = BookingStatus.REFUND_PENDING;
+		status = BookingStatus.CONFIRMED;
+		
+		registerEvent(
+				new BookingConfirmedEvent(
+						id,
+						uuid
+				)
+		);
 	}
 	
-	public void refund() {
-
-	    if (status != BookingStatus.REFUND_PENDING) {
+	public void markRefunded() {
+		if (status != BookingStatus.CONFIRMED) {
 	        throw new InvalidBookingStateException(
-	                "The booking is not waiting for a refund"
+	        		"Booking cannot be marked as refunded from status: " + status
 	        );
 	    }
-	    status = BookingStatus.REFUNDED;
-	    
-	    //registerEvent(new BookingRefundedEvent(bookingSeats.stream().map(BookingSeat::getId).toList()));
+		status = BookingStatus.REFUNDED;
+	}
+	
+	public void ensurePayable(Instant now) {
+	    if (status != BookingStatus.PENDING) {
+	        throw new InvalidBookingStateException(
+	        		"Only a pending booking can be paid"
+	        );
+	    }
+
+	    if (isExpired(now)) {
+	        throw new BookingAlreadyExpiredException();
+	    }
+	}
+	
+	public boolean isPending() {
+		return status == BookingStatus.PENDING;
+	}
+	
+	public boolean isConfirmed() {
+		return status == BookingStatus.CONFIRMED;
+	}
+	
+	public boolean isExpired(Instant now) {
+		return status == BookingStatus.EXPIRED || 
+	    		(expiresAt != null && !now.isBefore(expiresAt));
+	}
+	
+	public boolean isCancelled() {
+		return status == BookingStatus.CANCELLED;
 	}
 
 	public UUID getUuid() {
@@ -251,10 +283,6 @@ public class Booking extends AggregateRoot{
 	
 	public List<BookingSeat> getBookingSeats() {
 	    return Collections.unmodifiableList(bookingSeats);
-	}
-	
-	public boolean isPending() {
-		return status == BookingStatus.PENDING;
 	}
 	
 	public List<Long> getBookingSeatsIds(){
