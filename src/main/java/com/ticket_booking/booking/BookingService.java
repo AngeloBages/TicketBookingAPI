@@ -25,12 +25,14 @@ import com.ticket_booking.domain.models.Booking;
 import com.ticket_booking.domain.models.BookingSeat;
 import com.ticket_booking.domain.models.Event;
 import com.ticket_booking.domain.models.EventSeat;
-import com.ticket_booking.domain.models.enums.BookingStatus;
 import com.ticket_booking.domain.models.enums.IdempotencyOperation;
+import com.ticket_booking.event.EventService;
 import com.ticket_booking.event.exceptions.EventNotFoundException;
 import com.ticket_booking.event.exceptions.EventSeatNotFoundException;
 import com.ticket_booking.event.repositories.IEventRepository;
 import com.ticket_booking.idempotency.Idempotent;
+
+import io.micrometer.observation.annotation.Observed;
 
 
 @Service
@@ -39,17 +41,20 @@ public class BookingService {
 	private final IBookingRepository bookingRepository;
 	private final IEventRepository eventRepository;
 	private final BookingProperties bookingProperties;
-	private final DomainEventDispatcher eventDispatcher;
+	private final EventService eventService;
+	private final DomainEventDispatcher dispatcher;
 	
 	public BookingService(
 			IBookingRepository bookingRepository,
 			IEventRepository eventRepository,
 			BookingProperties bookingProperties,
-			DomainEventDispatcher eventDispatcher) {
+			EventService eventService,
+			DomainEventDispatcher dispatcher) {
 		this.bookingRepository = bookingRepository;
 		this.eventRepository = eventRepository;
 		this.bookingProperties = bookingProperties;
-		this.eventDispatcher = eventDispatcher;
+		this.eventService = eventService;
+		this.dispatcher = dispatcher;
 	}
 
 	@Transactional(readOnly = true)
@@ -114,6 +119,10 @@ public class BookingService {
 		return BookingMapper.toResponse(booking, booking.getBookingSeats());
 	}
 	
+	@Observed(
+        name = "booking.create",
+        contextualName = "create-booking"
+    )
 	@Idempotent(
 		operation = IdempotencyOperation.BOOKING_CREATE,
 		key = "#command.idempotencyKey", 
@@ -154,32 +163,53 @@ public class BookingService {
 		return booking.getUuid();
 	}
 	
+	@Observed(
+        name = "booking.cancel.user",
+        contextualName = "cancel-booking-by-user"
+    )
 	@Transactional
 	public void cancelBooking(Long userId, UUID bookingId) {
-		Booking booking = bookingRepository.findByUuidAndUserId(bookingId, userId)
-				.orElseThrow(() -> new BookingNotFoundException());
+		Booking booking =  findBooking(
+				bookingId, 
+				userId
+		);
 		
 		booking.cancel();
-		eventDispatcher.publishEventsFor(booking);
+		
+		eventService.releaseSeats(
+				booking.getBookingSeatsIds()
+		);
+		
+	    dispatcher.publishEventsFor(booking);
 	}
 	
+	@Observed(
+        name = "booking.cancel.pending",
+        contextualName = "cancel-pending-booking"
+    )
 	@Transactional
-	public void handleEventCancellation(Long eventId) {
-		List<Booking> bookings = bookingRepository
-				.findByEventIdAndStatusIn(
-						eventId,
-						List.of(
-								BookingStatus.PENDING
-						)
-				);
-
-	    for (Booking booking : bookings) {
-	        booking.cancel();
+	public void cancelBooking(Long bookingId) {
+		Booking booking = findBookingForUpdate(bookingId);
+		
+		if (!booking.isPending()) {
+	        return;
 	    }
+		
+		booking.cancel();
+		
+		eventService.releaseSeats(
+				booking.getBookingSeatsIds()
+		);
+
+	    dispatcher.publishEventsFor(booking);
 	}
 	
 	@Transactional
-	public void expirePendingBookings(Limit limit) {
+	@Observed(
+	    name = "booking.expire.batch",
+	    contextualName = "expire-pending-bookings"
+	)
+	public int expirePendingBookings(Limit limit) {
 	    Instant now = Instant.now();
 
 	    List<Booking> bookings =
@@ -188,8 +218,15 @@ public class BookingService {
 
 	    for (Booking booking : bookings) {
 	        booking.expire();
-		    eventDispatcher.publishEventsFor(booking);
+	        
+	        eventService.releaseSeats(
+					booking.getBookingSeatsIds()
+			);
+
+		    dispatcher.publishEventsFor(booking);
 	    }
+	    
+	    return bookings.size();
 	}
 	
 	private List<Booking> findNextPage(
@@ -213,5 +250,19 @@ public class BookingService {
 			);
 	
 		return BookingCursorParser.encode(bookingCursor);
+	}
+	
+	private Booking findBooking(
+			UUID bookingId,
+			Long userId) {
+		
+		return bookingRepository
+				.findByUuidAndUserId(bookingId, userId)
+				.orElseThrow(() -> new BookingNotFoundException());
+	}
+	
+	private Booking findBookingForUpdate(Long bookingId) {
+		return bookingRepository.findByIdForUpdate(bookingId)
+				.orElseThrow(() -> new BookingNotFoundException());
 	}
 }

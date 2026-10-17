@@ -12,8 +12,8 @@ import java.util.UUID;
 import com.ticket_booking.booking.exceptions.DuplicateBookingSeatException;
 import com.ticket_booking.booking.exceptions.EventSeatNotAvailableException;
 import com.ticket_booking.booking.exceptions.InvalidBookingStateException;
-import com.ticket_booking.domain.events.BookingCancelledEvent;
-import com.ticket_booking.domain.events.BookingExpiredEvent;
+import com.ticket_booking.domain.events.booking.BookingCanceledEvent;
+import com.ticket_booking.domain.events.booking.BookingExpiredEvent;
 import com.ticket_booking.domain.models.enums.BookingStatus;
 
 import jakarta.persistence.CascadeType;
@@ -91,7 +91,7 @@ public class Booking extends AggregateRoot{
 	    
 		this.status = BookingStatus.PENDING;
 	    this.totalPrice = BigDecimal.ZERO;
-	    this.expiresAt = Objects.requireNonNull(expiresAt);;
+	    this.expiresAt = Objects.requireNonNull(expiresAt);
 		this.user = Objects.requireNonNull(user);
 		this.event = Objects.requireNonNull(event);
 		
@@ -118,7 +118,6 @@ public class Booking extends AggregateRoot{
 	}
 	
 	public void addSeat(EventSeat eventSeat) {
-
 	    Objects.requireNonNull(eventSeat);
 	    Objects.requireNonNull(eventSeat.getPrice());
 	    
@@ -156,46 +155,18 @@ public class Booking extends AggregateRoot{
 	}
 	
 	public void cancel() {
-		
-		switch (status) {
-			
-		    case PENDING -> {
-				status = BookingStatus.CANCELLED;
-			}
-	
-		    case CONFIRMED ->
-	            throw new InvalidBookingStateException(
-	                    "A confirmed booking must go through the refund process"
-	            );
-	
-	        case CANCELLED ->
-	            throw new InvalidBookingStateException(
-	                "The booking is already cancelled"
-	            );
-	            
-	        case EXPIRED ->
-            throw new InvalidBookingStateException(
-                "The booking is already expired"
-            );
-	
-	        case REFUND_PENDING ->
-	            throw new InvalidBookingStateException(
-	                "A booking waiting for refund cannot be canceled"
-	            );
-	           
-	        case REFUNDED ->
-	            throw new InvalidBookingStateException(
-	                "A booking already refunded cannot be canceled"
-	            );
-	    }
-		
+		if (status != BookingStatus.PENDING) {
+			throw new InvalidBookingStateException(
+					"Booking cannot be canceled from status: " + status
+			);
+		}
 		this.expiresAt = null;
-		
-		registerEvent(
-				new BookingCancelledEvent(
-					bookingSeats.stream()
-						.map(BookingSeat::getId)
-						.toList()
+	    status = BookingStatus.CANCELLED;
+	    
+	    registerEvent(
+				new BookingCanceledEvent(
+						id,
+						uuid
 				)
 		);
 	}
@@ -203,18 +174,17 @@ public class Booking extends AggregateRoot{
 	public void expire() {
 	    if (status != BookingStatus.PENDING) {
 	    	throw new InvalidBookingStateException(
-	                "Only a pending booking can expire"
+	    			"Booking cannot be expired from status: " + status
 	    	);
 	    }
 
 	    this.expiresAt = null;
 	    status = BookingStatus.EXPIRED;
-
+	    
 	    registerEvent(
-	    		new BookingExpiredEvent(
-					bookingSeats.stream()
-						.map(BookingSeat::getId)
-						.toList()
+				new BookingExpiredEvent(
+						id,
+						uuid
 				)
 		);
 	}
@@ -281,6 +251,16 @@ public class Booking extends AggregateRoot{
 	
 	public List<BookingSeat> getBookingSeats() {
 	    return Collections.unmodifiableList(bookingSeats);
+	}
+	
+	public boolean isPending() {
+		return status == BookingStatus.PENDING;
+	}
+	
+	public List<Long> getBookingSeatsIds(){
+		return bookingSeats.stream()
+				.map(BookingSeat::getId)
+				.toList();
 	}
 	
 	private boolean isFromSameEvent(EventSeat eventSeat) {

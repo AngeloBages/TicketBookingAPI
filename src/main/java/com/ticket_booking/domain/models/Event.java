@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.ticket_booking.domain.events.EventCancelledEvent;
+import com.ticket_booking.domain.events.event.EventCanceledEvent;
 import com.ticket_booking.domain.models.enums.EventStatus;
 import com.ticket_booking.domain.models.valueobjects.EventDescription;
 import com.ticket_booking.domain.models.valueobjects.EventPrice;
@@ -240,7 +240,7 @@ public class Event extends AggregateRoot {
 	            );
 	    }
 	    
-	    registerEvent(new EventCancelledEvent(this.id));
+	    registerEvent(new EventCanceledEvent(this.id));
 	}
 	
 	public void schedule() {

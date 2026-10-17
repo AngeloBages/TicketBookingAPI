@@ -88,12 +88,11 @@ public interface IEventRepository extends JpaRepository<Event, Long> {
 			@Param("eventId") UUID eventId,
 	        @Param("seatIds") Collection<UUID> seatIds);
 	
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("""
 	    SELECT bs.eventSeat
 	    FROM BookingSeat bs
 	    WHERE bs.id IN :bookingSeatIds
 	    """)
-	List<EventSeat> findEventSeatsByBookingSeatsForUpdate(
+	List<EventSeat> findEventSeatsByBookingSeats(
 	        @Param("bookingSeatIds") List<Long> bookingSeatIds);
 }

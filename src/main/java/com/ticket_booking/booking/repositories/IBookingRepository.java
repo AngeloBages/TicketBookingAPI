@@ -1,7 +1,6 @@
 package com.ticket_booking.booking.repositories;
 
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,13 +18,20 @@ import com.ticket_booking.domain.models.enums.BookingStatus;
 import jakarta.persistence.LockModeType;
 
 public interface IBookingRepository extends JpaRepository<Booking, Long> {
-
-    
+	
 	Optional<Booking> findByUuidAndUserId(UUID uuid, Long userId);
     
-	List<Booking> findByEventIdAndStatusIn(
-	        Long eventId,
-	        Collection<BookingStatus> statuses);
+	@Query("""
+	        SELECT b.id
+	        FROM Booking b
+	        WHERE b.event.id = :eventId
+	          AND b.status = :status
+	        ORDER BY b.id
+	""")
+	List<Long> findIdByEventIdAndStatus(
+	        @Param("eventId") Long eventId,
+	        @Param("status") BookingStatus status,
+	        Limit limit);
 
     @Query("""
         SELECT DISTINCT b
@@ -41,6 +47,14 @@ public interface IBookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findByUuidAndUserIdFull(
             @Param("bookingId") UUID bookingId, 
             @Param("userId") Long userId);
+    
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("""
+		SELECT b
+		FROM Booking b
+		WHERE b.id = :id
+	""")
+	Optional<Booking> findByIdForUpdate(@Param("id") Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

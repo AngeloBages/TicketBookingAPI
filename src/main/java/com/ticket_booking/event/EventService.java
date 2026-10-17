@@ -155,9 +155,9 @@ public class EventService {
 	}
 	
 	@Transactional
-	public void releaseSeatsFromBookinSeats(List<Long> bookingSeatIds) {
+	public void releaseSeats(List<Long> bookingSeatIds) {
 		List<EventSeat> eventSeats = eventRepository
-				.findEventSeatsByBookingSeatsForUpdate(bookingSeatIds);
+				.findEventSeatsByBookingSeats(bookingSeatIds);
 		
 		if (eventSeats.size() != bookingSeatIds.size()) {
 	        throw new EventSeatNotFoundException();
