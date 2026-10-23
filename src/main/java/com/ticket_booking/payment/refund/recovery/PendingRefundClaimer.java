@@ -14,20 +14,22 @@ import com.ticket_booking.payment.refund.repositories.IPaymentRefundRepository;
 public class PendingRefundClaimer {
 
 	private final IPaymentRefundRepository refundRepository;
+	private final PendingRefundRecoveryProperties properties;
 
     public PendingRefundClaimer(
-            IPaymentRefundRepository refundRepository
+            IPaymentRefundRepository refundRepository,
+            PendingRefundRecoveryProperties properties
     ) {
         this.refundRepository = refundRepository;
+        this.properties = properties;
     }
 
     @Transactional
-    public List<Long> claimStalePendingRefunds(
-            Instant staleBefore,
-            Instant claimExpiredBefore,
-            int limit
-    ) {
+    public List<Long> claimStalePendingRefunds(int limit) {
         Instant now = Instant.now();
+        
+        Instant staleBefore = now.minus(properties.staleAfter());
+        Instant claimExpiredBefore = now.minus(properties.claimTimeout());
 
         List<PaymentRefund> refunds =
         		refundRepository.findStalePendingRefundsForUpdate(

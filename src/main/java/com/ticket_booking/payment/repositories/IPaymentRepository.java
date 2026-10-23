@@ -13,12 +13,30 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.ticket_booking.domain.models.Payment;
-import com.ticket_booking.domain.models.enums.PaymentProviderType;
 import com.ticket_booking.domain.models.enums.PaymentStatus;
 
 import jakarta.persistence.LockModeType;
 
 public interface IPaymentRepository extends JpaRepository<Payment, Long> {
+	
+	@Query("""
+		SELECT p
+		FROM Payment p
+		JOIN FETCH p.booking
+		WHERE p.uuid = :paymentUuid
+		  AND p.booking.user.id = :userId
+	""")
+	Optional<Payment> findByUuidAndUserIdWithBooking(
+			@Param("paymentUuid") UUID paymentUuid,
+			@Param("userId") Long userId);
+	
+	@Query("""
+		SELECT p
+		FROM Payment p
+		JOIN FETCH p.booking
+		WHERE p.id = :paymentId
+	""")
+	Optional<Payment> findByIdWithBooking(Long paymentId);
 	
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("""
@@ -35,17 +53,6 @@ public interface IPaymentRepository extends JpaRepository<Payment, Long> {
 		WHERE p.uuid = :uuid
 	""")
 	Optional<Payment> findByUuidForUpdate(@Param("uuid") UUID uuid);
-
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("""
-		SELECT p
-		FROM Payment p
-		WHERE p.provider = :provider
-		  AND p.providerPaymentId = :providerPaymentId
-	""")
-	Optional<Payment> findByProviderAndProviderPaymentIdForUpdate(
-			@Param("provider") PaymentProviderType provider,
-		    @Param("providerPaymentId") String providerPaymentId);
 	
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("""
@@ -108,4 +115,16 @@ public interface IPaymentRepository extends JpaRepository<Payment, Long> {
     		Instant staleBefore,
     		Instant claimExpiredBefore,
     		int limit);
+    
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT p
+        FROM Payment p
+        WHERE p.id = :paymentId
+          AND p.status = 'PENDING'
+          AND p.providerPaymentId IS NULL
+          AND p.providerCheckoutSessionId IS NULL
+    """)
+    Optional<Payment> findPendingPaymentForUpdate(
+        @Param("paymentId") Long paymentId);
 }

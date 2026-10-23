@@ -1,7 +1,5 @@
 package com.ticket_booking.payment.recovery;
 
-import java.time.Instant;
-
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -29,11 +27,8 @@ public class PendingPaymentRecoveryJob {
             "${app.payment.pending-recovery.fixed-delay:30000}"
     )
     public void recoverPendingPayments() {
-        Instant now = Instant.now();
 
         worker.recover(
-                now.minus(properties.staleAfter()),
-                now.minus(properties.claimTimeout()),
                 properties.batchSize()
         );
     }

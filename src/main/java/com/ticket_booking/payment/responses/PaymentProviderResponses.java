@@ -1,5 +1,6 @@
 package com.ticket_booking.payment.responses;
 
+import com.ticket_booking.payment.ProviderCheckoutStatus;
 import com.ticket_booking.payment.ProviderPaymentStatus;
 import com.ticket_booking.payment.refund.ProviderRefundStatus;
 
@@ -30,4 +31,22 @@ public class PaymentProviderResponses {
 	        String failureCode,
 	        String failureMessage
 	) {}
+	
+	public record CheckoutSessionResult(
+			String checkoutSessionId,
+			ProviderCheckoutStatus status,
+		    String redirectUrl
+	) {}
+	
+	public record ResumeCheckoutResult(
+			String checkoutSessionId,
+			CheckoutStatus status,
+			String redirectUrl,
+			Long paymentId
+	) {}
+	
+	public enum CheckoutStatus {
+		NOT_STARTED,
+		OPENED
+	}
 }

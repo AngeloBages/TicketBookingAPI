@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.ticket_booking.domain.models.PaymentRefund;
 import com.ticket_booking.domain.models.enums.RefundStatus;
-import com.ticket_booking.payment.PaymentOrchestrator;
+import com.ticket_booking.payment.refund.PaymentRefundService;
 import com.ticket_booking.payment.refund.exceptions.PaymentRefundNotFoundException;
 import com.ticket_booking.payment.refund.repositories.IPaymentRefundRepository;
 
@@ -12,30 +12,30 @@ import com.ticket_booking.payment.refund.repositories.IPaymentRefundRepository;
 public class PendingRefundRecoveryService {
 
 	private final IPaymentRefundRepository refundRepository;
-    private final PaymentOrchestrator paymentOrchestrator;
+    private final PaymentRefundService refundService;
 
     public PendingRefundRecoveryService(
             IPaymentRefundRepository refundRepository,
-            PaymentOrchestrator paymentOrchestrator
+            PaymentRefundService refundService
     ) {
         this.refundRepository = refundRepository;
-        this.paymentOrchestrator = paymentOrchestrator;
+        this.refundService = refundService;
     }
 
     public void recover(Long refundId) {
-        PaymentRefund payment = refundRepository.findById(refundId)
+        PaymentRefund refund = refundRepository.findById(refundId)
                 .orElseThrow(() ->
                         new PaymentRefundNotFoundException()
                 );
 
-        if (payment.getStatus() != RefundStatus.PENDING) {
+        if (refund.getStatus() != RefundStatus.PENDING) {
             return;
         }
 
-        if (payment.getProviderRefundId() != null) {
+        if (refund.getProviderRefundId() != null) {
             return;
         }
 
-        paymentOrchestrator.recoverPendingRefund(payment);
+        refundService.processRefund(refund.getId());
     }
 }

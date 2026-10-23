@@ -59,6 +59,7 @@ public interface IPaymentRefundRepository extends JpaRepository<PaymentRefund, L
 		SELECT *
 		FROM payment_refund
 		WHERE status IN (:statuses)
+    	  AND updated_at < :staleBefore
 		  AND (
 			  reconciliation_claimed_at IS NULL
 			  OR reconciliation_claimed_at < :claimExpiredBefore
@@ -69,6 +70,7 @@ public interface IPaymentRefundRepository extends JpaRepository<PaymentRefund, L
 	""", nativeQuery = true)
 	List<PaymentRefund> findRefundsForReconciliation(
 			Set<String> statuses,
+    		Instant staleBefore,
 			Instant claimExpiredBefore,
 			int limit);
     

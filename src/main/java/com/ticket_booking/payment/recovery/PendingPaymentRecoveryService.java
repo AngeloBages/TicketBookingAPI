@@ -1,42 +1,71 @@
 package com.ticket_booking.payment.recovery;
 
+import java.time.Instant;
+
 import org.springframework.stereotype.Service;
 
+import com.ticket_booking.booking.exceptions.BookingAlreadyExpiredException;
 import com.ticket_booking.domain.models.Payment;
 import com.ticket_booking.domain.models.enums.PaymentStatus;
-import com.ticket_booking.payment.PaymentOrchestrator;
+import com.ticket_booking.payment.PaymentService;
+import com.ticket_booking.payment.exceptions.InvalidPaymentStateException;
 import com.ticket_booking.payment.exceptions.PaymentNotFoundException;
 import com.ticket_booking.payment.repositories.IPaymentRepository;
+import com.ticket_booking.payment.responses.PaymentResponses.RecoverPaymentResult;
+
+import io.micrometer.observation.annotation.Observed;
 
 @Service
 public class PendingPaymentRecoveryService {
 
     private final IPaymentRepository paymentRepository;
-    private final PaymentOrchestrator paymentOrchestrator;
+    private final PaymentService paymentService;
 
     public PendingPaymentRecoveryService(
             IPaymentRepository paymentRepository,
-            PaymentOrchestrator paymentOrchestrator
+            PaymentService paymentService
     ) {
         this.paymentRepository = paymentRepository;
-        this.paymentOrchestrator = paymentOrchestrator;
+        this.paymentService = paymentService;
     }
 
-    public void recover(Long paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() ->
-                        new PaymentNotFoundException()
-                );
+    @Observed(
+        name = "payment.recovery",
+        contextualName = "recover-pending-payment"
+	)
+    public RecoverPaymentResult recover(Long paymentId) {
+        Payment payment = paymentRepository
+        		.findByIdWithBooking(paymentId)
+                .orElseThrow(() -> new PaymentNotFoundException());
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
-            return;
+            throw new InvalidPaymentStateException(
+            		"Payment can't be recovered from status: " + payment.getStatus()
+            );
         }
 
-        if (payment.getProviderPaymentId() != null
-                || payment.getProviderCheckoutSessionId() != null) {
-            return;
-        }
+        var result = paymentService.processPayment(payment);
 
-        paymentOrchestrator.recoverPendingPayment(payment);
+		paymentService.savePaymentProviderInfo(
+    			payment.getId(),
+    			result.checkoutSessionId()
+    	); 	
+        
+		try {
+			payment.getBooking().ensureNotExpired(Instant.now());
+			
+		} catch (BookingAlreadyExpiredException ex) {
+			paymentService.expireCheckoutSession(
+					payment.getId(), 
+					result.checkoutSessionId()
+			);
+			
+			throw ex;
+		}
+		
+		return new RecoverPaymentResult(
+				result.checkoutSessionId(),
+				result.redirectUrl()
+		);
     }
 }

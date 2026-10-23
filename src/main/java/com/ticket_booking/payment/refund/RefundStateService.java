@@ -3,6 +3,7 @@ package com.ticket_booking.payment.refund;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ticket_booking.common.DomainEventDispatcher;
@@ -139,7 +140,7 @@ public class RefundStateService {
 	    dispatcher.publishEventsFor(refund);
 	}
 	
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void fail(
     		Long refundId,
     		String failureCode,
@@ -196,7 +197,7 @@ public class RefundStateService {
 	    dispatcher.publishEventsFor(refund);
 	}
 
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void markOutcomeUnknown(Long refundId) {
 		PaymentRefund refund = findRefundForUpdate(refundId);
 		refund.markUnknown();

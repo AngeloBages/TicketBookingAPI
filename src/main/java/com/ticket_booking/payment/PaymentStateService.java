@@ -4,6 +4,7 @@ package com.ticket_booking.payment;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ticket_booking.common.DomainEventDispatcher;
@@ -82,7 +83,7 @@ public class PaymentStateService {
     	dispatcher.publishEventsFor(payment);
     }
     
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void fail(
     		Long paymentId,
             String failureCode,
@@ -145,6 +146,12 @@ public class PaymentStateService {
     	cancel(payment);
     }
     
+    @Transactional
+    public void cancel(Long paymentId) {
+    	Payment payment = findPaymentForUpdate(paymentId);
+    	cancel(payment);
+    }
+    
     private void cancel(Payment payment) {
     	payment.cancel();
     	dispatcher.publishEventsFor(payment);
@@ -178,7 +185,7 @@ public class PaymentStateService {
     	dispatcher.publishEventsFor(payment);
     }
     
-    @Transactional 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markOutcomeUnknown(Long paymentId) {
     	Payment payment = findPaymentForUpdate(paymentId);
         payment.markUnknown();

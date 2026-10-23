@@ -16,20 +16,22 @@ import com.ticket_booking.payment.repositories.IPaymentRepository;
 public class PaymentReconciliationClaimer {
 
     private final IPaymentRepository paymentRepository;
+    private final PaymentReconciliationProperties properties;
 
     public PaymentReconciliationClaimer(
-            IPaymentRepository paymentRepository) {
+            IPaymentRepository paymentRepository,
+            PaymentReconciliationProperties properties) {
         this.paymentRepository = paymentRepository;
+        this.properties = properties;
     }
 
     @Transactional
-    public List<Long> claim(
-            Instant staleBefore,
-            Instant claimExpiredBefore,
-            int limit
-    ) {
+    public List<Long> claim(int limit) {
         Instant now = Instant.now();
 
+        Instant staleBefore = now.minus(properties.staleAfter());
+        Instant claimExpiredBefore = now.minus(properties.claimTimeout());
+        
         List<Payment> payments = 
         		paymentRepository.findPaymentsForReconciliationForUpdate(
 		                Set.of(

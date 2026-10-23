@@ -2,6 +2,7 @@ package com.ticket_booking.payment;
 
 import java.time.Instant;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ticket_booking.booking.exceptions.BookingAlreadyExpiredException;
 import com.ticket_booking.booking.exceptions.BookingNotFoundException;
 import com.ticket_booking.booking.repositories.IBookingRepository;
 import com.ticket_booking.booking.utils.BookingPaymentMapper;
@@ -18,11 +20,16 @@ import com.ticket_booking.domain.models.Payment;
 import com.ticket_booking.domain.models.enums.PaymentProviderType;
 import com.ticket_booking.domain.models.enums.PaymentStatus;
 import com.ticket_booking.payment.commands.PaymentProviderCommands.CreateProviderPaymentCommand;
+import com.ticket_booking.payment.exceptions.InvalidPaymentStateException;
 import com.ticket_booking.payment.exceptions.PaymentAlreadyInProgressException;
+import com.ticket_booking.payment.exceptions.PaymentCheckoutClosedException;
 import com.ticket_booking.payment.exceptions.PaymentNotFoundException;
 import com.ticket_booking.payment.exceptions.PaymentProviderException;
+import com.ticket_booking.payment.exceptions.PaymentRecoveryRequiredException;
 import com.ticket_booking.payment.repositories.IPaymentRepository;
+import com.ticket_booking.payment.responses.PaymentProviderResponses.CheckoutStatus;
 import com.ticket_booking.payment.responses.PaymentProviderResponses.CreatePaymentResult;
+import com.ticket_booking.payment.responses.PaymentProviderResponses.ResumeCheckoutResult;
 
 @Service
 public class PaymentService {
@@ -76,14 +83,15 @@ public class PaymentService {
     }
 	
 	public CreatePaymentResult processPayment(
-			Payment payment,
-    		PaymentProviderType providerType) {
+			Payment payment) {
 		
 		Booking booking = 
 				bookingRepository
 						.findByIdWithDescriptionAssociations(payment.getBookingId())
     					.orElseThrow(() -> new BookingNotFoundException());
 
+		PaymentProviderType providerType = payment.getProvider();
+		
         try {
         	log.info(
                 "Creating provider payment paymentId={} provider={}",
@@ -158,6 +166,88 @@ public class PaymentService {
     	
     	return payment;
     }
+	
+	public ResumeCheckoutResult resumeCheckout(
+	        UUID paymentUuid,
+	        Long userId) {
+
+	    Payment payment = paymentRepository
+	            .findByUuidAndUserIdWithBooking(paymentUuid, userId)
+	            .orElseThrow(PaymentNotFoundException::new);
+	    
+	    if (payment.isTerminal()
+	    		|| payment.isAuthorized()) {
+	        throw new PaymentCheckoutClosedException();
+	    }
+
+	    if (payment.getProviderCheckoutSessionId() == null) {
+
+	        if (payment.isPending()) {
+	            return new ResumeCheckoutResult(
+	            		null,
+	                    CheckoutStatus.NOT_STARTED,
+	                    null,
+	                    payment.getId()
+	            );
+	        }
+	      
+	        throw new PaymentRecoveryRequiredException();
+	    }
+
+	    var result =
+	            paymentProviderResolver.resolve(payment.getProvider())
+	                    .retrieveCheckoutSession(
+	                            payment.getProviderCheckoutSessionId()
+	                    );
+
+	    return switch (result.status()) {
+	    
+	    	case COMPLETE, EXPIRED->
+	    		throw new PaymentCheckoutClosedException();
+	    
+	    	case OPEN -> {
+	    		
+	    		try {
+	    			payment.getBooking().ensureNotExpired(Instant.now());
+	    			
+	    		} catch (BookingAlreadyExpiredException ex) {
+	    			expireCheckoutSession(
+	    					payment.getId(), 
+	    					result.checkoutSessionId()
+	    			);
+	    			
+	    			throw ex;
+	    		}
+	    		
+	    		yield new ResumeCheckoutResult(
+	    				result.checkoutSessionId(),
+	    	            CheckoutStatus.OPENED,
+	    	            result.redirectUrl(),
+	    				payment.getId()
+	    		);
+	    	}
+	    		
+	    };
+	}
+	
+	public void expireCheckoutSession(
+			Long paymentId,
+			String providerCheckoutSessionId) {
+		Payment payment = paymentRepository.findById(paymentId)
+		        .orElseThrow(PaymentNotFoundException::new);
+
+	    if (!Objects.equals(
+	            payment.getProviderCheckoutSessionId(),
+	            providerCheckoutSessionId)) {
+	        throw new InvalidPaymentStateException(
+	            "Checkout Session does not match the payment.");
+	    }
+		    
+	    paymentProviderResolver.resolve(payment.getProvider())
+	    	.expireCheckoutSession(providerCheckoutSessionId);
+	    
+	    paymentStateService.cancel(paymentId);
+	}
     
     private Booking findBookingForUpdate(
     		UUID bookingId,

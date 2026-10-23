@@ -197,6 +197,7 @@ public class Booking extends AggregateRoot{
 	        		"Booking cannot be confirmed from status: " + status
 	        );
 	    }
+		this.expiresAt = null;
 		status = BookingStatus.CONFIRMED;
 		
 		registerEvent(
@@ -213,6 +214,7 @@ public class Booking extends AggregateRoot{
 	        		"Booking cannot be marked as refunded from status: " + status
 	        );
 	    }
+		this.expiresAt = null;
 		status = BookingStatus.REFUNDED;
 	}
 	
@@ -223,7 +225,11 @@ public class Booking extends AggregateRoot{
 	        );
 	    }
 
-	    if (isExpired(now)) {
+	    ensureNotExpired(now);
+	}
+	
+	public void ensureNotExpired(Instant now) {
+		if (isExpired(now)) {
 	        throw new BookingAlreadyExpiredException();
 	    }
 	}

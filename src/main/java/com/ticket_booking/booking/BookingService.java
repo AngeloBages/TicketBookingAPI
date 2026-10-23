@@ -256,7 +256,7 @@ public class BookingService {
 
 		return new PayBookingResponse(
 				result.paymentUuid(),
-				result.returnUrl()
+				result.redirectUrl()
 		);
 	}
 	

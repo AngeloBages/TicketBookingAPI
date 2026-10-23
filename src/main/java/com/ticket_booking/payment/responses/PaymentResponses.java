@@ -12,7 +12,7 @@ public final class PaymentResponses{
 
 	public record CreatePaymentResponse(
 			UUID paymentUuid,
-			String returnUrl
+			String redirectUrl
 	) {}
 	
 	public record GetPaymentResponse(
@@ -31,5 +31,15 @@ public final class PaymentResponses{
 	public record RefundResponse(
 			UUID refundUuid,
 			RefundStatus status
+	) {}
+	
+	public record ResumeCheckoutResponse(
+			UUID paymentUuid,
+			String redirectUrl
+	) {}
+	
+	public record RecoverPaymentResult(
+			String checkoutSessionId,
+		    String redirectUrl
 	) {}
 }

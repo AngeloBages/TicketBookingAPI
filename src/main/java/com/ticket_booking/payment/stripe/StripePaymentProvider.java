@@ -26,19 +26,25 @@ import com.stripe.param.checkout.SessionCreateParams.Mode;
 import com.stripe.param.checkout.SessionCreateParams.PaymentIntentData;
 import com.ticket_booking.domain.models.enums.PaymentProviderType;
 import com.ticket_booking.payment.IPaymentProvider;
+import com.ticket_booking.payment.ProviderCheckoutStatus;
 import com.ticket_booking.payment.ProviderPaymentStatus;
 import com.ticket_booking.payment.commands.PaymentProviderCommands.CancelProviderPaymentCommand;
 import com.ticket_booking.payment.commands.PaymentProviderCommands.CreateProviderPaymentCommand;
 import com.ticket_booking.payment.commands.PaymentProviderCommands.RefundProviderPaymentCommand;
 import com.ticket_booking.payment.commands.PaymentProviderCommands.RetrieveProviderPaymentStatusCommand;
 import com.ticket_booking.payment.commands.PaymentProviderCommands.RetrieveProviderRefundStatusCommand;
+import com.ticket_booking.payment.exceptions.ExternalResourceNotFoundException;
+import com.ticket_booking.payment.exceptions.PaymentCheckoutClosedException;
 import com.ticket_booking.payment.refund.ProviderRefundStatus;
 import com.ticket_booking.payment.responses.PaymentProviderResponses.CreatePaymentResult;
+import com.ticket_booking.payment.responses.PaymentProviderResponses.CheckoutSessionResult;
 import com.ticket_booking.payment.responses.PaymentProviderResponses.PaymentStatusResult;
 import com.ticket_booking.payment.responses.PaymentProviderResponses.RefundPaymentResult;
 import com.ticket_booking.payment.responses.PaymentProviderResponses.RefundStatusResult;
 import com.ticket_booking.payment.stripe.enums.StripePaymentIntentStatus;
 import com.ticket_booking.payment.stripe.enums.StripeRefundStatus;
+import com.ticket_booking.payment.stripe.enums.StripeSessionPaymentStatus;
+import com.ticket_booking.payment.stripe.enums.StripeSessionStatus;
 import com.ticket_booking.payment.stripe.utils.RetryPredicate;
 import com.ticket_booking.payment.stripe.utils.StripeExceptionTranslator;
 import com.ticket_booking.payment.stripe.utils.StripeUtils;
@@ -244,26 +250,36 @@ public class StripePaymentProvider implements IPaymentProvider {
 	@Override
 	public PaymentStatusResult retrievePaymentStatus(RetrieveProviderPaymentStatusCommand command) {
 
-		PaymentIntent paymentIntent = resolvePaymentIntent(command);
+		PaymentIntent paymentIntent = null;
+		Session session = null;
 		
-		if (paymentIntent == null) {
-		    return new PaymentStatusResult(
-		            ProviderPaymentStatus.PROCESSING,
-		            null,
-		            null
-		    );
+		try {
+			paymentIntent = resolvePaymentIntent(command);
+		} catch (ExternalResourceNotFoundException ex) {
+			session = 
+					stripeRetrieve
+						.retrieveCheckoutSession(
+								command.providerCheckoutSessionId()
+						);
 		}
-	    
-	    /*if(paymentIntent.getLastPaymentError() != null) {
-	    	return new PaymentStatusResult(
-                    ProviderPaymentStatus.FAILED,
-                    StripeUtils.getFailureCode(paymentIntent),
-                    StripeUtils.getFailureMessage(paymentIntent)
-            );
-	    }*/
-
-	    StripePaymentIntentStatus status = 
-	    		StripeUtils.mapPaymentIntentStatus(paymentIntent);
+		
+		StripePaymentIntentStatus status = null;
+		
+		if(paymentIntent == null) {
+			StripeSessionPaymentStatus paymentStatus = 
+					StripeUtils.mapSessionPaymentStatus(session);
+			
+			if(paymentStatus == StripeSessionPaymentStatus.PAID) {
+				status = StripePaymentIntentStatus.SUCCEEDED;
+				
+			} else if (paymentStatus == StripeSessionPaymentStatus.UNPAID) {
+				status = StripePaymentIntentStatus.PROCESSING;
+			}
+			
+		} else {
+			status = StripeUtils.mapPaymentIntentStatus(paymentIntent);
+			
+		}
 	    
 	    return switch (status) {
 
@@ -306,7 +322,7 @@ public class StripePaymentProvider implements IPaymentProvider {
 	}
 	
 	@Observed(
-        name = "provider..refund.retrieve",
+        name = "provider.refund.retrieve",
         contextualName = "retrieve-provider-refund-status"
 	)
 	@Override
@@ -362,6 +378,74 @@ public class StripePaymentProvider implements IPaymentProvider {
 	                    null
 	            );
 	    };
+	}
+	
+	@Override
+	@Observed(
+        name = "provider.checkout.session.retrieve",
+        contextualName = "retrieve-provider-checkout-session"
+	)
+	public CheckoutSessionResult retrieveCheckoutSession(String providerCheckoutSessionId) {
+
+		Session session =
+				stripeRetrieve.
+					retrieveCheckoutSession(
+							providerCheckoutSessionId
+					);
+		
+		StripeSessionStatus status = 
+	    		StripeUtils.mapSessionStatus(session);
+
+		return switch (status) {
+
+			case OPEN ->
+				new CheckoutSessionResult(
+						session.getId(),
+						ProviderCheckoutStatus.OPEN,
+						session.getUrl()
+				);
+				
+			case COMPLETE ->
+				new CheckoutSessionResult(
+						session.getId(),
+						ProviderCheckoutStatus.COMPLETE,
+						null
+				);
+			
+			case EXPIRED ->
+				new CheckoutSessionResult(
+						session.getId(),
+						ProviderCheckoutStatus.EXPIRED,
+						null
+				);
+		};
+	}
+	
+	@Override
+	@Observed(
+        name = "provider.checkout.session.expire",
+        contextualName = "expire-provider-checkout-session"
+	)
+	public void expireCheckoutSession(String providerCheckoutSessionId) {
+		Session session =
+				stripeRetrieve.
+					retrieveCheckoutSession(
+							providerCheckoutSessionId
+					);
+		
+		StripeSessionStatus status = 
+	    		StripeUtils.mapSessionStatus(session);
+		
+		try {
+			if(status != StripeSessionStatus.OPEN) {
+				throw new PaymentCheckoutClosedException();
+			}
+			
+			session = session.expire();
+			
+		} catch(StripeException ex) {
+			throw StripeExceptionTranslator.translate(ex);
+		}
 	}
 
 	@Override

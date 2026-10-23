@@ -1,6 +1,5 @@
 package com.ticket_booking.payment.refund.reconciliation;
 
-import java.time.Instant;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -29,12 +28,8 @@ public class RefundReconciliationJob {
 		fixedDelayString = "${app.payment.refund.reconciliation.fixed-delay:300000}"
 	)
 	public void reconcileRefunds() {
-
-		Instant now = Instant.now();
-
 		worker.reconcile(
-				properties.batchSize(),
-				now.minus(properties.claimTimeout())
+				properties.batchSize()
 		);
 	}
 }

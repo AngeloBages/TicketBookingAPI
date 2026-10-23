@@ -1,6 +1,5 @@
 package com.ticket_booking.payment.reconciliation;
 
-import java.time.Instant;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -26,17 +25,10 @@ public class PaymentReconciliationWorker {
         this.reconciliationService = reconciliationService;
     }
 	
-	public void reconcile(
-            Instant staleBefore,
-            Instant claimExpiredBefore,
-            int limit
-    ) {	
+	public void reconcile(int limit) {	
+		
         List<Long> paymentIds =
-                claimer.claim(
-                		staleBefore,
-                        claimExpiredBefore,
-                        limit
-                );
+                claimer.claim(limit);
         
         if (paymentIds.isEmpty()) {
             log.debug("Payment reconciliation found no candidates");

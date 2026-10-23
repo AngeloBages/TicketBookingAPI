@@ -1,6 +1,5 @@
 package com.ticket_booking.payment.refund.reconciliation;
 
-import java.time.Instant;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -26,12 +25,10 @@ public class RefundReconciliationWorker {
         this.reconciliationService = reconciliationService;
     }
 	
-	public void reconcile(
-            int limit,
-            Instant claimTimeout) {
+	public void reconcile(int limit) {
     	
         List<Long> refundIds =
-                claimer.claim(limit, claimTimeout);
+                claimer.claim(limit);
         
         if (refundIds.isEmpty()) {
             log.debug("Refund reconciliation found no candidates");

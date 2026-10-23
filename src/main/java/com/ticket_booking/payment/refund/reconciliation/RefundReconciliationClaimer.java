@@ -16,18 +16,22 @@ import com.ticket_booking.payment.refund.repositories.IPaymentRefundRepository;
 public class RefundReconciliationClaimer {
 
 	private final IPaymentRefundRepository refundRepository;
+	private final RefundReconciliationProperties properties;
 
     public RefundReconciliationClaimer(
-    		IPaymentRefundRepository refundRepository) {
+    		IPaymentRefundRepository refundRepository,
+    		RefundReconciliationProperties properties) {
         this.refundRepository = refundRepository;
+        this.properties = properties;
     }
 
     @Transactional
-    public List<Long> claim(
-            int limit,
-            Instant claimExpiredBefore) {
+    public List<Long> claim(int limit) {
     
         Instant now = Instant.now();
+
+        Instant staleBefore = now.minus(properties.staleAfter());
+        Instant claimExpiredBefore = now.minus(properties.claimTimeout());
 
         List<PaymentRefund> payments = 
         		refundRepository.findRefundsForReconciliation(
@@ -35,6 +39,7 @@ public class RefundReconciliationClaimer {
 		                        RefundStatus.PROCESSING.name(),
 		                        RefundStatus.UNKNOWN.name()
 		                ),
+		                staleBefore,
 		                claimExpiredBefore,
 		                limit
 		        );

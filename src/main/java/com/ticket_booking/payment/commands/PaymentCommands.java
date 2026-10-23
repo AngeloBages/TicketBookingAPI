@@ -17,4 +17,9 @@ public class PaymentCommands {
 				Long userId,
 				UUID bookingId
 	) {}
+	
+	public record ResumeCheckoutCommand(
+				Long userId,
+				UUID paymentId
+	) {}
 }

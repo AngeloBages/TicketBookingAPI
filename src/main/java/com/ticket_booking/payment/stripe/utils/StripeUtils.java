@@ -15,6 +15,8 @@ import static com.ticket_booking.payment.PaymentProviderMetadata.*;
 import com.ticket_booking.payment.stripe.enums.StripePaymentIntentStatus;
 import com.ticket_booking.payment.stripe.enums.StripeRefundStatus;
 import com.ticket_booking.payment.stripe.enums.StripeSessionPaymentStatus;
+import com.ticket_booking.payment.stripe.enums.StripeSessionStatus;
+import com.ticket_booking.payment.stripe.exceptions.InvalidStripeCheckoutStatusException;
 import com.ticket_booking.payment.stripe.exceptions.InvalidStripePaymentStatusException;
 import com.ticket_booking.payment.stripe.exceptions.InvalidStripeRefundStatusException;
 import com.ticket_booking.payment.stripe.exceptions.InvalidStripeWebhookException;
@@ -22,6 +24,16 @@ import com.ticket_booking.payment.stripe.exceptions.InvalidStripeWebhookExceptio
 public final class StripeUtils {
 
 	private StripeUtils() {}
+	
+	public static StripeSessionStatus mapSessionStatus(Session session) {
+		return StripeSessionStatus.from(session.getStatus())
+			        .orElseThrow(
+			                () -> new InvalidStripeCheckoutStatusException(
+			                        "Unexpected Stripe Checkout Session status: "
+			                                + session.getStatus()
+			                )
+			        );
+	}
 	
 	public static StripeSessionPaymentStatus mapSessionPaymentStatus(Session session) {
 		return StripeSessionPaymentStatus.from(session.getPaymentStatus())

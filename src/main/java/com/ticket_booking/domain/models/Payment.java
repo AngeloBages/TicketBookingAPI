@@ -1,6 +1,7 @@
 package com.ticket_booking.domain.models;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -173,7 +174,7 @@ public class Payment extends AggregateRoot {
         
         if (!this.providerCheckoutSessionId.equals(providerCheckoutSessionId)) {
             throw new InvalidPaymentStateException(
-                "A differenct provider checkout ID is already associated"
+                "A different provider checkout ID is already associated"
             );
         }
     }
@@ -334,12 +335,48 @@ public class Payment extends AggregateRoot {
         );
     }
     
+    public boolean isPending() {
+    	return this.status == PaymentStatus.PENDING;
+    }
+    
+    public boolean isActionRequired() {
+    	return this.status == PaymentStatus.REQUIRES_ACTION;
+    }
+    
+    public boolean isProcessing() {
+    	return this.status == PaymentStatus.PROCESSING;
+    }
+    
+    public boolean isAuthorized() {
+    	return this.status == PaymentStatus.AUTHORIZED;
+    }
+    
+    public boolean isUnknown() {
+    	return this.status == PaymentStatus.UNKNOWN;
+    }
+    
+    public boolean isTerminal() {
+    	return !PaymentStatus
+    			.getActiveStatus()
+    			.contains(this.status);
+    }
+    
     public void setReconciliationClaimedAt(Instant now) {
     	this.reconciliationClaimedAt = now;
     }
     
     public void clearReconciliationTimestamp() {
     	this.reconciliationClaimedAt = null;
+    }
+    
+    public boolean isReconciliationTimestampClaimed(
+    		Instant now, 
+    		Duration claimTimeout) {
+    	
+    	Instant claimExpiredBefore = now.minus(claimTimeout);
+    	
+    	return reconciliationClaimedAt != null
+				&& !reconciliationClaimedAt.isBefore(claimExpiredBefore);
     }
     
     public void ensureRefundable() {

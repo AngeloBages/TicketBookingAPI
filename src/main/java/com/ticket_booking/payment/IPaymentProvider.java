@@ -7,6 +7,7 @@ import com.ticket_booking.payment.commands.PaymentProviderCommands.RefundProvide
 import com.ticket_booking.payment.commands.PaymentProviderCommands.RetrieveProviderPaymentStatusCommand;
 import com.ticket_booking.payment.commands.PaymentProviderCommands.RetrieveProviderRefundStatusCommand;
 import com.ticket_booking.payment.responses.PaymentProviderResponses.CreatePaymentResult;
+import com.ticket_booking.payment.responses.PaymentProviderResponses.CheckoutSessionResult;
 import com.ticket_booking.payment.responses.PaymentProviderResponses.PaymentStatusResult;
 import com.ticket_booking.payment.responses.PaymentProviderResponses.RefundPaymentResult;
 import com.ticket_booking.payment.responses.PaymentProviderResponses.RefundStatusResult;
@@ -24,5 +25,9 @@ public interface IPaymentProvider {
     PaymentStatusResult retrievePaymentStatus(RetrieveProviderPaymentStatusCommand command);
     
     RefundStatusResult retrieveRefundStatus(RetrieveProviderRefundStatusCommand command);
+
+	CheckoutSessionResult retrieveCheckoutSession(String providerCheckoutSessionId);
+
+	void expireCheckoutSession(String providerCheckoutSessionId);
 }
 

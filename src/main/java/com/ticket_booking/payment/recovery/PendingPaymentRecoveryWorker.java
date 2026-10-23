@@ -1,6 +1,5 @@
 package com.ticket_booking.payment.recovery;
 
-import java.time.Instant;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -29,17 +28,9 @@ public class PendingPaymentRecoveryWorker {
         this.recoveryService = recoveryService;
     }
 
-    public void recover(
-            Instant staleBefore,
-            Instant claimExpiredBefore,
-            int limit
-    ) {
+    public void recover(int limit) {
         List<Long> paymentIds =
-                claimer.claimStalePendingPayments(
-                        staleBefore,
-                        claimExpiredBefore,
-                        limit
-                );
+                claimer.claimStalePendingPayments(limit);
         
         if (paymentIds.isEmpty()) {
             log.debug("Pending payment recovery found no candidates");

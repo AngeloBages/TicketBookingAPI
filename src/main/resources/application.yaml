@@ -59,6 +59,7 @@ app:
     refund:
       reconciliation:
         fixed-delay: ${REFUND_RECONCILIATION_JOB_FIXED_DELAY}
+        stale-after: ${REFUND_RECONCILIATION_JOB_STALE_AFTER}
         claim-timeout: ${REFUND_RECONCILIATION_JOB_CLAIM_TIMEOUT}
         batch-size: ${REFUND_RECONCILIATION_JOB_BATCH_SIZE}
       pending-recovery:

@@ -11,27 +11,36 @@ import com.ticket_booking.domain.models.enums.PaymentProviderType;
 import com.ticket_booking.payment.commands.PaymentCommands.CapturePaymentCommand;
 import com.ticket_booking.payment.commands.PaymentCommands.CreatePaymentCommand;
 import com.ticket_booking.payment.commands.PaymentCommands.RefundPaymentCommand;
+import com.ticket_booking.payment.commands.PaymentCommands.ResumeCheckoutCommand;
 import com.ticket_booking.payment.exceptions.UnsupportedPaymentProviderException;
+import com.ticket_booking.payment.recovery.PendingPaymentClaimer;
+import com.ticket_booking.payment.recovery.PendingPaymentRecoveryService;
 import com.ticket_booking.payment.refund.PaymentRefundService;
-import com.ticket_booking.payment.responses.PaymentProviderResponses.CreatePaymentResult;
 import com.ticket_booking.payment.responses.PaymentResponses.CreatePaymentResponse;
 import com.ticket_booking.payment.responses.PaymentResponses.GetPaymentResponse;
 import com.ticket_booking.payment.responses.PaymentResponses.RefundResponse;
+import com.ticket_booking.payment.responses.PaymentResponses.ResumeCheckoutResponse;
 
 import io.micrometer.observation.annotation.Observed;
 
 @Service
 public class PaymentOrchestrator {
 	
+	private final PendingPaymentClaimer pendingPaymentClaimer;
+	private final PendingPaymentRecoveryService paymentRecoveryService;
     private final PaymentService paymentService;
     private final PaymentRefundService refundService;
     private final PaymentProperties paymentProperties;
     
     public PaymentOrchestrator(
+    		PendingPaymentClaimer pendingPaymentClaimer,
+    		PendingPaymentRecoveryService paymentRecoveryService,
             PaymentService paymentService,
             PaymentRefundService refundService,
             PaymentProperties paymentProperties) {
 
+    	this.pendingPaymentClaimer = pendingPaymentClaimer;
+    	this.paymentRecoveryService = paymentRecoveryService;
         this.paymentService = paymentService;
         this.refundService = refundService;
         this.paymentProperties = paymentProperties;
@@ -51,7 +60,7 @@ public class PaymentOrchestrator {
 	    							paymentProperties.providerName()
 	    					)
 	    			);
-
+        
     	Payment payment = 
     			paymentService.createPayment(
     					command.userId(),
@@ -60,11 +69,7 @@ public class PaymentOrchestrator {
     					providerType
     			);
 
-    	CreatePaymentResult result = 
-    			paymentService.processPayment(
-    					payment,
-    					providerType
-    			);
+    	var result = paymentService.processPayment(payment);
 
     	payment = 
     			paymentService.savePaymentProviderInfo(
@@ -126,31 +131,40 @@ public class PaymentOrchestrator {
 	}
 	
 	@Observed(
-        name = "payment.recovery",
-        contextualName = "recover-pending-payment"
+        name = "payment.checkout.resume",
+        contextualName = "resume-checkout-payment"
 	)
-	public void recoverPendingPayment(Payment payment) {
-
-		CreatePaymentResult result = 
-    			paymentService.processPayment(
-    					payment,
-    					payment.getProvider()
-    			);
-
-		payment = 
-    			paymentService.savePaymentProviderInfo(
-		    			payment.getId(),
-		    			result.checkoutSessionId()
-		    	); 
-	}
-	
-	@Observed(
-        name = "payment.recovery.refund",
-        contextualName = "recover-pending-refund"
-	)
-	public void recoverPendingRefund(PaymentRefund refund) {
-		refundService.processRefund(
-				refund.getId()
-		); 
+	public ResumeCheckoutResponse resumeCheckout(ResumeCheckoutCommand command) {
+		
+		var resumeResult = 
+				paymentService
+					.resumeCheckout(
+							command.paymentId(), 
+							command.userId()
+					);
+		
+		String redirectUrl = 
+				switch (resumeResult.status()) {
+				
+					case OPENED ->
+						resumeResult.redirectUrl();
+						
+					case NOT_STARTED -> {
+						pendingPaymentClaimer
+								.claimPendingPayment(
+										resumeResult.paymentId()
+								);
+						
+						var recoveryResult = paymentRecoveryService
+								.recover(resumeResult.paymentId());
+						
+						yield recoveryResult.redirectUrl();
+					}
+				};
+		
+		return new ResumeCheckoutResponse(
+				command.paymentId(),
+				redirectUrl
+		);	
 	}
 }
