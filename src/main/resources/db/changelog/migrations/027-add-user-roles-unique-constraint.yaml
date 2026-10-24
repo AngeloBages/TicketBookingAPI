@@ -1,0 +1,17 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 01-add-user-roles-unique-constraint
+      author: angelo-b
+      changes:
+
+        - addUniqueConstraint:
+            tableName: user_roles
+            columnNames: user_id, role_id
+            constraintName: uk_user_id_role_id
+
+      rollback:
+        - dropUniqueConstraint: 
+            tableName: user_roles
+            uniqueColumns: user_id, role_id
+            constraintName: uk_user_id_role_id

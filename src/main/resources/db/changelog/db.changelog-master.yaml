@@ -76,3 +76,6 @@ databaseChangeLog:
 
   - include:
       file: db/changelog/migrations/026-create-payment-refund-table.yaml
+
+  - include:
+      file: db/changelog/migrations/027-add-user-roles-unique-constraint.yaml

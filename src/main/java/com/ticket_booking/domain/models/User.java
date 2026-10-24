@@ -19,6 +19,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -56,7 +57,13 @@ public class User {
     @JoinTable(
         name = "user_roles",
         joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
+        inverseJoinColumns = @JoinColumn(name = "role_id"),
+        uniqueConstraints = {
+        		@UniqueConstraint(
+        				name = "uk_user_id_role_id",
+        				columnNames = {"user_id", "role_id"}
+        		)
+        }
     )
     private Set<Role> roles = new HashSet<>();
 
